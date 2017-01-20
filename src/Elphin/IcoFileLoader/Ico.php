@@ -291,18 +291,19 @@ class Ico
          * 32 bits: 4 bytes per pixel [ B | G | R | ALPHA ].
          **/
         $offset = 0;
+        $binary=$metadata['data'];
+
         for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
             for ($j = 0; $j < $metadata['Width']; ++$j) {
-                $color = substr($metadata['data'], $offset, 4);
-                if (ord($color[3]) > 0) {
-                    $palette = $this->allocateColor(
-                        $im,
-                        ord($color[2]),
-                        ord($color[1]),
-                        ord($color[0]),
-                        127 - round(ord($color[3]) / 255 * 127)
-                    );
-                    imagesetpixel($im, $j, $i, $palette);
+                //we translate the BGRA to aRGB ourselves, which is twice as fast
+                //as calling imagecolorallocatealpha
+                $alpha7 = ((~ord($binary[$offset+3])) & 0xff) >> 1;
+                if ($alpha7 < 127) {
+                    $col = ($alpha7 << 24) |
+                        (ord($binary[$offset+2]) << 16) |
+                        (ord($binary[$offset+1]) << 8) |
+                        (ord($binary[$offset]));
+                    imagesetpixel($im, $j, $i, $col);
                 }
                 $offset += 4;
             }
@@ -318,12 +319,14 @@ class Ico
          **/
         $offset = 0;
         $bitoffset = 0;
+        $binary=$metadata['data'];
+
         for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
             for ($j = 0; $j < $metadata['Width']; ++$j) {
                 if ($maskBits[$bitoffset] == 0) {
-                    $color = substr($metadata['data'], $offset, 3);
-                    $palette = $this->allocateColor($im, ord($color[2]), ord($color[1]), ord($color[0]));
-                    imagesetpixel($im, $j, $i, $palette);
+                    //translate BGR to RGB
+                    $col = (ord($binary[$offset+2]) << 16) | (ord($binary[$offset+1]) << 8) | (ord($binary[$offset]));
+                    imagesetpixel($im, $j, $i, $col);
                 }
                 $offset += 3;
                 ++$bitoffset;
@@ -343,7 +346,7 @@ class Ico
         for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
             for ($j = 0; $j < $metadata['Width']; ++$j) {
                 if ($maskBits[$offset] == 0) {
-                    $color = ord(substr($metadata['data'], $offset, 1));
+                    $color = ord($metadata['data'][$offset]);
                     imagesetpixel($im, $j, $i, $palette[$color]);
                 }
                 ++$offset;

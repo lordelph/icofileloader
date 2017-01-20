@@ -23,24 +23,20 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $ico->setBackground('#00ff00');
         $im = $ico->getImage(1);
 
-
         //save icon as PNG with no compression
         $this->assertImageLooksLike('32bit-32px-expected.png', $im);
     }
 
-    public function test4bitIcon()
+    public function test24bitIcon()
     {
-        $ico = new Ico('./tests/assets/4bit-32px-16px-sample.ico');
-        $this->assertEquals(2, $ico->getTotalIcons());
-
-        $this->assertIconMetadata($ico, 0, 32, 32, 16, 4);
-        $this->assertIconMetadata($ico, 1, 16, 16, 16, 4);
+        $ico = new Ico('./tests/assets/24bit-32px-sample.ico');
+        $this->assertEquals(1, $ico->getTotalIcons());
+        $this->assertIconMetadata($ico, 0, 32, 32, 256, 24);
 
         //we use a bright green background to ensure we spot obvious masking issues
         $ico->setBackground('#00ff00');
-
         $im = $ico->getImage(0);
-        $this->assertImageLooksLike('4bit-32px-expected.png', $im);
+        $this->assertImageLooksLike('24bit-32px-expected.png', $im);
     }
 
     public function test8bitIcon()
@@ -63,21 +59,24 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $this->assertImageLooksLike('8bit-32px-expected.png', $im);
     }
 
-    public function test24bitIcon()
+    public function test4bitIcon()
     {
-        $ico = new Ico('./tests/assets/24bit-32px-sample.ico');
-        $this->assertEquals(1, $ico->getTotalIcons());
-        $this->assertIconMetadata($ico, 0, 32, 32, 256, 24);
+        $ico = new Ico('./tests/assets/4bit-32px-16px-sample.ico');
+        $this->assertEquals(2, $ico->getTotalIcons());
+
+        $this->assertIconMetadata($ico, 0, 32, 32, 16, 4);
+        $this->assertIconMetadata($ico, 1, 16, 16, 16, 4);
 
         //we use a bright green background to ensure we spot obvious masking issues
         $ico->setBackground('#00ff00');
+
         $im = $ico->getImage(0);
-        $this->assertImageLooksLike('24bit-32px-expected.png', $im);
+        $this->assertImageLooksLike('4bit-32px-expected.png', $im);
     }
 
-    public function test2bitIcon()
+    public function test1bitIcon()
     {
-        $ico = new Ico('./tests/assets/2bit-32px-sample.ico');
+        $ico = new Ico('./tests/assets/1bit-32px-sample.ico');
         $this->assertEquals(1, $ico->getTotalIcons());
         $this->assertIconMetadata($ico, 0, 32, 32, 2, 1);
 
@@ -85,7 +84,7 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         //our 2 bit sample doesn't have a mask
         $ico->setBackground('#00ff00');
         $im = $ico->getImage(0);
-        $this->assertImageLooksLike('2bit-32px-expected.png', $im);
+        $this->assertImageLooksLike('1bit-32px-expected.png', $im);
     }
 
     //most of our tests have used a green background, but this tests we can generate
