@@ -140,9 +140,9 @@ class Ico
                     $offset = 0;
                     for ($j = 0; $j < $this->formats[$i]['ColorCount']; ++$j) {
                         $this->formats[$i]['colors'][] = [
-                            'red' => ord($icodata[$offset]),
+                            'blue' => ord($icodata[$offset]),
                             'green' => ord($icodata[$offset + 1]),
-                            'blue' => ord($icodata[$offset + 2]),
+                            'red' => ord($icodata[$offset + 2]),
                             'reserved' => ord($icodata[$offset + 3]),
                         ];
                         $offset += 4;
@@ -380,27 +380,20 @@ class Ico
                  **/
                 $offset = 0;
                 $maskoffset = 0;
-                $leftbits = true;
                 for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
-                    for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
-                        $colorByte = substr($this->formats[$index]['data'], $offset, 1);
-                        $color = [
-                            'High' => bindec(substr(decbin(ord($colorByte)), 0, 4)),
-                            'Low' => bindec(substr(decbin(ord($colorByte)), 4)),
-                        ];
+                    for ($j = 0; $j < $this->formats[$index]['Width']; $j+=2) {
+                        $colorByte = ord($this->formats[$index]['data'][$offset]);
+                        $lowNibble=$colorByte&0x0f;
+                        $highNibble=($colorByte&0xf0) >> 4;
 
-                        if ($leftbits) {
-                            if ($maskBits[$maskoffset++] == 0) {
-                                imagesetpixel($im, $j, $i, $palette[$color['High']]);
-                            }
-                            $leftbits = false;
-                        } else {
-                            if ($maskBits[$maskoffset++] == 0) {
-                                imagesetpixel($im, $j, $i, $palette[$color['Low']]);
-                            }
-                            ++$offset;
-                            $leftbits = true;
+                        if ($maskBits[$maskoffset++] == 0) {
+                            imagesetpixel($im, $j, $i, $palette[$highNibble]);
                         }
+
+                        if ($maskBits[$maskoffset++] == 0) {
+                            imagesetpixel($im, $j+1, $i, $palette[$lowNibble]);
+                        }
+                        $offset++;
                     }
                 }
                 break;

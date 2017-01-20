@@ -10,6 +10,9 @@ principles.
 ### Change
 - Refactored original classes to follow PSR-2 and added test coverage to enable more significant refactoring to occur.
 
+### Fixed
+- 4/8 bit icons load palette correctly
+
 ## 0.0.1 - 2017-01-20
 
 ### Added
