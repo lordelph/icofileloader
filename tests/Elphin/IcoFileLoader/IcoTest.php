@@ -75,15 +75,28 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $this->assertImageLooksLike('24bit-32px-expected.png', $im);
     }
 
+    public function test2bitIcon()
+    {
+        $ico = new Ico('./tests/assets/2bit-32px-sample.ico');
+        $this->assertEquals(1, $ico->getTotalIcons());
+        $this->assertIconMetadata($ico, 0, 32, 32, 2, 1);
+
+        //we use a bright green background to ensure we spot obvious masking issues - however,
+        //our 2 bit sample doesn't have a mask
+        $ico->setBackground('#00ff00');
+        $im = $ico->getImage(0);
+        $this->assertImageLooksLike('2bit-32px-expected.png', $im);
+    }
+
     /**
-     * useful durign test development, this can spit out some assertions for regression tests
+     * useful during test development, this can spit out some assertions for regression tests
      * @param Ico $ico
      */
     protected function generateTest(Ico $ico)
     {
-        for ($x=0; $x<$ico->getTotalIcons(); $x++) {
+        for ($x = 0; $x < $ico->getTotalIcons(); $x++) {
             $info = $ico->getIconInfo($x);
-            echo '$this->assertIconMetadata($ico, 0, ',
+            echo '$this->assertIconMetadata($ico, ', $x, ', ',
             $info['Width'], ', ', $info['Height'], ', ', $info['ColorCount'], ', ', $info['BitCount'], ");\n";
         }
     }
