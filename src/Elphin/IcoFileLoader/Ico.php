@@ -105,7 +105,8 @@ class Ico
         /*
          * Extract aditional headers for each extracted icon header
          **/
-        for ($i = 0; $i < count($this->formats); ++$i) {
+        $formatCount=count($this->formats);
+        for ($i = 0; $i < $formatCount; ++$i) {
             $icodata = unpack(
                 'LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/'.
                 'LXpixelsPerM/LYpixelsPerM/LColorsUsed/LColorsImportant',
@@ -264,35 +265,26 @@ class Ico
             return false;
         }
 
-        /**
-         * create image.
-         **/
+        // create image filled with desired background color
         $im = imagecreatetruecolor($this->formats[$index]['Width'], $this->formats[$index]['Height']);
-
-        /**
-         * paint background.
-         **/
         $bgcolor = $this->allocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2]);
         imagefilledrectangle($im, 0, 0, $this->formats[$index]['Width'], $this->formats[$index]['Height'], $bgcolor);
 
-        /*
-         * set background color transparent
-         **/
         if ($this->bgcolorTransparent) {
             imagecolortransparent($im, $bgcolor);
         }
 
-        /*
-         * allocate pallete and get XOR image
-         **/
+        //we may build a string of 1/0 to represent the XOR mask
+        $maskBits='';
+        //we may build a palette for 8 bit images
+        $palette=[];
+
+        // allocate palette and get XOR image
         if (in_array($this->formats[$index]['BitCount'], [1, 4, 8, 24])) {
             if ($this->formats[$index]['BitCount'] != 24) {
-                /**
-                 * color pallete.
-                 **/
-                $c = [];
+                $palette = [];
                 for ($i = 0; $i < $this->formats[$index]['ColorCount']; ++$i) {
-                    $c[$i] = $this->allocateColor(
+                    $palette[$i] = $this->allocateColor(
                         $im,
                         $this->formats[$index]['colors'][$i]['red'],
                         $this->formats[$index]['colors'][$i]['green'],
@@ -302,9 +294,7 @@ class Ico
                 }
             }
 
-            /**
-             * XOR image.
-             **/
+            // build XOR mask bits
             $width = $this->formats[$index]['Width'];
             if (($width % 32) > 0) {
                 $width += (32 - ($this->formats[$index]['Width'] % 32));
@@ -313,12 +303,12 @@ class Ico
                 $this->formats[$index]['Height'] *
                 $this->formats[$index]['BitCount'] / 8;
             $total_bytes = ($width * $this->formats[$index]['Height']) / 8;
-            $bits = '';
+            $maskBits = '';
             $bytes = 0;
             $bytes_per_line = ($this->formats[$index]['Width'] / 8);
             $bytes_to_remove = (($width - $this->formats[$index]['Width']) / 8);
             for ($i = 0; $i < $total_bytes; ++$i) {
-                $bits .= str_pad(decbin(ord($this->formats[$index]['data'][$offset + $i])), 8, '0', STR_PAD_LEFT);
+                $maskBits .= str_pad(decbin(ord($this->formats[$index]['data'][$offset + $i])), 8, '0', STR_PAD_LEFT);
                 ++$bytes;
                 if ($bytes == $bytes_per_line) {
                     $i += $bytes_to_remove;
@@ -327,9 +317,7 @@ class Ico
             }
         }
 
-        /*
-         * paint each pixel depending on bit count
-         **/
+        // now paint pixels based on bit count
         switch ($this->formats[$index]['BitCount']) {
             case 32:
                 /**
@@ -340,14 +328,14 @@ class Ico
                     for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
                         $color = substr($this->formats[$index]['data'], $offset, 4);
                         if (ord($color[3]) > 0) {
-                            $c = $this->allocateColor(
+                            $palette = $this->allocateColor(
                                 $im,
                                 ord($color[2]),
                                 ord($color[1]),
                                 ord($color[0]),
                                 127 - round(ord($color[3]) / 255 * 127)
                             );
-                            imagesetpixel($im, $j, $i, $c);
+                            imagesetpixel($im, $j, $i, $palette);
                         }
                         $offset += 4;
                     }
@@ -361,10 +349,10 @@ class Ico
                 $bitoffset = 0;
                 for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
                     for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
-                        if ($bits[$bitoffset] == 0) {
+                        if ($maskBits[$bitoffset] == 0) {
                             $color = substr($this->formats[$index]['data'], $offset, 3);
-                            $c = $this->allocateColor($im, ord($color[2]), ord($color[1]), ord($color[0]));
-                            imagesetpixel($im, $j, $i, $c);
+                            $palette = $this->allocateColor($im, ord($color[2]), ord($color[1]), ord($color[0]));
+                            imagesetpixel($im, $j, $i, $palette);
                         }
                         $offset += 3;
                         ++$bitoffset;
@@ -378,9 +366,9 @@ class Ico
                 $offset = 0;
                 for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
                     for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
-                        if ($bits[$offset] == 0) {
+                        if ($maskBits[$offset] == 0) {
                             $color = ord(substr($this->formats[$index]['data'], $offset, 1));
-                            imagesetpixel($im, $j, $i, $c[$color]);
+                            imagesetpixel($im, $j, $i, $palette[$color]);
                         }
                         ++$offset;
                     }
@@ -395,19 +383,20 @@ class Ico
                 $leftbits = true;
                 for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
                     for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
+                        $colorByte = substr($this->formats[$index]['data'], $offset, 1);
+                        $color = [
+                            'High' => bindec(substr(decbin(ord($colorByte)), 0, 4)),
+                            'Low' => bindec(substr(decbin(ord($colorByte)), 4)),
+                        ];
+
                         if ($leftbits) {
-                            $color = substr($this->formats[$index]['data'], $offset, 1);
-                            $color = [
-                                'High' => bindec(substr(decbin(ord($color)), 0, 4)),
-                                'Low' => bindec(substr(decbin(ord($color)), 4)),
-                            ];
-                            if ($bits[$maskoffset++] == 0) {
-                                imagesetpixel($im, $j, $i, $c[$color['High']]);
+                            if ($maskBits[$maskoffset++] == 0) {
+                                imagesetpixel($im, $j, $i, $palette[$color['High']]);
                             }
                             $leftbits = false;
                         } else {
-                            if ($bits[$maskoffset++] == 0) {
-                                imagesetpixel($im, $j, $i, $c[$color['Low']]);
+                            if ($maskBits[$maskoffset++] == 0) {
+                                imagesetpixel($im, $j, $i, $palette[$color['Low']]);
                             }
                             ++$offset;
                             $leftbits = true;
@@ -425,12 +414,11 @@ class Ico
                     $colorbits .= str_pad(decbin(ord($this->formats[$index]['data'][$i])), 8, '0', STR_PAD_LEFT);
                 }
 
-                //$total = strlen($colorbits);
                 $offset = 0;
                 for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
                     for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
-                        if ($bits[$offset] == 0) {
-                            imagesetpixel($im, $j, $i, $c[$colorbits[$offset]]);
+                        if ($maskBits[$offset] == 0) {
+                            imagesetpixel($im, $j, $i, $palette[$colorbits[$offset]]);
                         }
                         ++$offset;
                     }
@@ -453,7 +441,7 @@ class Ico
      * @param int      $red    Red component
      * @param int      $green  Green component
      * @param int      $blue   Blue component
-     * @param int      $alphpa Alpha channel
+     * @param int      $alpha Alpha channel
      *
      * @return int Color index
      **/
