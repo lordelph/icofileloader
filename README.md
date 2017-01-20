@@ -8,6 +8,8 @@ Elphin IcoFileLoader
 
 This class provides a means to load .ico files into a PHP application.
 
+No stable release is available yet, significant refactoring is underway to modernize the 2005 original.
+
 
 
 ## Contributing
