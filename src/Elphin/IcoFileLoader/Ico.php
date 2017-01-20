@@ -263,152 +263,188 @@ class Ico
             imagecolortransparent($im, $bgcolor);
         }
 
-        //we may build a string of 1/0 to represent the XOR mask
-        $maskBits = '';
-        //we may build a palette for 8 bit images
-        $palette = [];
-
-        // allocate palette and get XOR image
-        if (in_array($this->formats[$index]['BitCount'], [1, 4, 8, 24])) {
-            if ($this->formats[$index]['BitCount'] != 24) {
-                $palette = [];
-                for ($i = 0; $i < $this->formats[$index]['ColorCount']; ++$i) {
-                    $palette[$i] = $this->allocateColor(
-                        $im,
-                        $this->formats[$index]['colors'][$i]['red'],
-                        $this->formats[$index]['colors'][$i]['green'],
-                        $this->formats[$index]['colors'][$i]['blue'],
-                        round($this->formats[$index]['colors'][$i]['reserved'] / 255 * 127)
-                    );
-                }
-            }
-
-            // build XOR mask bits
-            $width = $this->formats[$index]['Width'];
-            if (($width % 32) > 0) {
-                $width += (32 - ($this->formats[$index]['Width'] % 32));
-            }
-            $offset = $this->formats[$index]['Width'] *
-                $this->formats[$index]['Height'] *
-                $this->formats[$index]['BitCount'] / 8;
-            $total_bytes = ($width * $this->formats[$index]['Height']) / 8;
-            $maskBits = '';
-            $bytes = 0;
-            $bytes_per_line = ($this->formats[$index]['Width'] / 8);
-            $bytes_to_remove = (($width - $this->formats[$index]['Width']) / 8);
-            for ($i = 0; $i < $total_bytes; ++$i) {
-                $maskBits .= str_pad(decbin(ord($this->formats[$index]['data'][$offset + $i])), 8, '0', STR_PAD_LEFT);
-                ++$bytes;
-                if ($bytes == $bytes_per_line) {
-                    $i += $bytes_to_remove;
-                    $bytes = 0;
-                }
-            }
-        }
-
         // now paint pixels based on bit count
         switch ($this->formats[$index]['BitCount']) {
             case 32:
-                /**
-                 * 32 bits: 4 bytes per pixel [ B | G | R | ALPHA ].
-                 **/
-                $offset = 0;
-                for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
-                    for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
-                        $color = substr($this->formats[$index]['data'], $offset, 4);
-                        if (ord($color[3]) > 0) {
-                            $palette = $this->allocateColor(
-                                $im,
-                                ord($color[2]),
-                                ord($color[1]),
-                                ord($color[0]),
-                                127 - round(ord($color[3]) / 255 * 127)
-                            );
-                            imagesetpixel($im, $j, $i, $palette);
-                        }
-                        $offset += 4;
-                    }
-                }
+                $this->render32bit($this->formats[$index], $im);
                 break;
             case 24:
-                /**
-                 * 24 bits: 3 bytes per pixel [ B | G | R ].
-                 **/
-                $offset = 0;
-                $bitoffset = 0;
-                for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
-                    for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
-                        if ($maskBits[$bitoffset] == 0) {
-                            $color = substr($this->formats[$index]['data'], $offset, 3);
-                            $palette = $this->allocateColor($im, ord($color[2]), ord($color[1]), ord($color[0]));
-                            imagesetpixel($im, $j, $i, $palette);
-                        }
-                        $offset += 3;
-                        ++$bitoffset;
-                    }
-                }
+                $this->render24bit($this->formats[$index], $im);
                 break;
             case 8:
-                /**
-                 * 8 bits: 1 byte per pixel [ COLOR INDEX ].
-                 **/
-                $offset = 0;
-                for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
-                    for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
-                        if ($maskBits[$offset] == 0) {
-                            $color = ord(substr($this->formats[$index]['data'], $offset, 1));
-                            imagesetpixel($im, $j, $i, $palette[$color]);
-                        }
-                        ++$offset;
-                    }
-                }
+                $this->render8bit($this->formats[$index], $im);
                 break;
             case 4:
-                /**
-                 * 4 bits: half byte/nibble per pixel [ COLOR INDEX ].
-                 **/
-                $offset = 0;
-                $maskoffset = 0;
-                for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
-                    for ($j = 0; $j < $this->formats[$index]['Width']; $j += 2) {
-                        $colorByte = ord($this->formats[$index]['data'][$offset]);
-                        $lowNibble = $colorByte & 0x0f;
-                        $highNibble = ($colorByte & 0xf0) >> 4;
-
-                        if ($maskBits[$maskoffset++] == 0) {
-                            imagesetpixel($im, $j, $i, $palette[$highNibble]);
-                        }
-
-                        if ($maskBits[$maskoffset++] == 0) {
-                            imagesetpixel($im, $j + 1, $i, $palette[$lowNibble]);
-                        }
-                        $offset++;
-                    }
-                }
+                $this->render4bit($this->formats[$index], $im);
                 break;
             case 1:
-                /**
-                 * 1 bit: 1 bit per pixel (2 colors, usually black&white) [ COLOR INDEX ].
-                 **/
-                $colorbits = '';
-                $total = strlen($this->formats[$index]['data']);
-                for ($i = 0; $i < $total; ++$i) {
-                    $colorbits .= str_pad(decbin(ord($this->formats[$index]['data'][$i])), 8, '0', STR_PAD_LEFT);
-                }
-
-                $offset = 0;
-                for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
-                    for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
-                        if ($maskBits[$offset] == 0) {
-                            imagesetpixel($im, $j, $i, $palette[$colorbits[$offset]]);
-                        }
-                        ++$offset;
-                    }
-                }
+                $this->render1bit($this->formats[$index], $im);
                 break;
         }
 
         return $im;
+    }
+
+    private function render32bit($metadata, $im)
+    {
+        /**
+         * 32 bits: 4 bytes per pixel [ B | G | R | ALPHA ].
+         **/
+        $offset = 0;
+        for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
+            for ($j = 0; $j < $metadata['Width']; ++$j) {
+                $color = substr($metadata['data'], $offset, 4);
+                if (ord($color[3]) > 0) {
+                    $palette = $this->allocateColor(
+                        $im,
+                        ord($color[2]),
+                        ord($color[1]),
+                        ord($color[0]),
+                        127 - round(ord($color[3]) / 255 * 127)
+                    );
+                    imagesetpixel($im, $j, $i, $palette);
+                }
+                $offset += 4;
+            }
+        }
+    }
+
+    private function render24bit($metadata, $im)
+    {
+        $maskBits = $this->buildMaskBits($metadata);
+
+        /**
+         * 24 bits: 3 bytes per pixel [ B | G | R ].
+         **/
+        $offset = 0;
+        $bitoffset = 0;
+        for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
+            for ($j = 0; $j < $metadata['Width']; ++$j) {
+                if ($maskBits[$bitoffset] == 0) {
+                    $color = substr($metadata['data'], $offset, 3);
+                    $palette = $this->allocateColor($im, ord($color[2]), ord($color[1]), ord($color[0]));
+                    imagesetpixel($im, $j, $i, $palette);
+                }
+                $offset += 3;
+                ++$bitoffset;
+            }
+        }
+    }
+
+    private function render8bit($metadata, $im)
+    {
+        $palette = $this->buildPalette($metadata, $im);
+        $maskBits = $this->buildMaskBits($metadata);
+
+        /**
+         * 8 bits: 1 byte per pixel [ COLOR INDEX ].
+         **/
+        $offset = 0;
+        for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
+            for ($j = 0; $j < $metadata['Width']; ++$j) {
+                if ($maskBits[$offset] == 0) {
+                    $color = ord(substr($metadata['data'], $offset, 1));
+                    imagesetpixel($im, $j, $i, $palette[$color]);
+                }
+                ++$offset;
+            }
+        }
+    }
+
+    private function render4bit($metadata, $im)
+    {
+        $palette = $this->buildPalette($metadata, $im);
+        $maskBits = $this->buildMaskBits($metadata);
+
+        /**
+         * 4 bits: half byte/nibble per pixel [ COLOR INDEX ].
+         **/
+        $offset = 0;
+        $maskoffset = 0;
+        for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
+            for ($j = 0; $j < $metadata['Width']; $j += 2) {
+                $colorByte = ord($metadata['data'][$offset]);
+                $lowNibble = $colorByte & 0x0f;
+                $highNibble = ($colorByte & 0xf0) >> 4;
+
+                if ($maskBits[$maskoffset++] == 0) {
+                    imagesetpixel($im, $j, $i, $palette[$highNibble]);
+                }
+
+                if ($maskBits[$maskoffset++] == 0) {
+                    imagesetpixel($im, $j + 1, $i, $palette[$lowNibble]);
+                }
+                $offset++;
+            }
+        }
+    }
+
+    private function render1bit($metadata, $im)
+    {
+        $palette = $this->buildPalette($metadata, $im);
+        $maskBits = $this->buildMaskBits($metadata);
+
+        /**
+         * 1 bit: 1 bit per pixel (2 colors, usually black&white) [ COLOR INDEX ].
+         **/
+        $colorbits = '';
+        $total = strlen($metadata['data']);
+        for ($i = 0; $i < $total; ++$i) {
+            $colorbits .= str_pad(decbin(ord($metadata['data'][$i])), 8, '0', STR_PAD_LEFT);
+        }
+
+        $offset = 0;
+        for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
+            for ($j = 0; $j < $metadata['Width']; ++$j) {
+                if ($maskBits[$offset] == 0) {
+                    imagesetpixel($im, $j, $i, $palette[$colorbits[$offset]]);
+                }
+                ++$offset;
+            }
+        }
+    }
+
+    private function buildPalette($metadata, $im)
+    {
+        $palette = [];
+        if ($metadata['BitCount'] != 24) {
+            $palette = [];
+            for ($i = 0; $i < $metadata['ColorCount']; ++$i) {
+                $palette[$i] = $this->allocateColor(
+                    $im,
+                    $metadata['colors'][$i]['red'],
+                    $metadata['colors'][$i]['green'],
+                    $metadata['colors'][$i]['blue'],
+                    round($metadata['colors'][$i]['reserved'] / 255 * 127)
+                );
+            }
+        }
+        return $palette;
+    }
+
+    private function buildMaskBits($metadata)
+    {
+        $width = $metadata['Width'];
+        if (($width % 32) > 0) {
+            $width += (32 - ($metadata['Width'] % 32));
+        }
+        $offset = $metadata['Width'] *
+            $metadata['Height'] *
+            $metadata['BitCount'] / 8;
+        $total_bytes = ($width * $metadata['Height']) / 8;
+        $maskBits = '';
+        $bytes = 0;
+        $bytes_per_line = ($metadata['Width'] / 8);
+        $bytes_to_remove = (($width - $metadata['Width']) / 8);
+        for ($i = 0; $i < $total_bytes; ++$i) {
+            $maskBits .= str_pad(decbin(ord($metadata['data'][$offset + $i])), 8, '0', STR_PAD_LEFT);
+            ++$bytes;
+            if ($bytes == $bytes_per_line) {
+                $i += $bytes_to_remove;
+                $bytes = 0;
+            }
+        }
+        return $maskBits;
     }
 
     /**
