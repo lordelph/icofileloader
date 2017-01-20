@@ -56,17 +56,8 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $count=$ico->getTotalIcons();
         $this->assertEquals(2, $count);
 
-        $info32=$ico->getIconInfo(0);
-        $this->assertEquals(32, $info32['Width']);
-        $this->assertEquals(32, $info32['Height']);
-        $this->assertEquals(16, $info32['ColorCount']);
-        $this->assertEquals(4, $info32['BitCount']);
-
-        $info16=$ico->getIconInfo(1);
-        $this->assertEquals(16, $info16['Width']);
-        $this->assertEquals(16, $info16['Height']);
-        $this->assertEquals(16, $info16['ColorCount']);
-        $this->assertEquals(4, $info16['BitCount']);
+        $this->assertIconMetadata($ico, 0, 32, 32, 16, 4);
+        $this->assertIconMetadata($ico, 1, 16, 16, 16, 4);
 
         //we use a bright green background to ensure we spot obvious masking issues
         $ico->setBackground('#00ff00');
@@ -76,8 +67,51 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $this->assertImageLooksLike('4bit-32px-expected.png', $im);
     }
 
+    public function test8bitIcon()
+    {
+        $iconFile = './tests/assets/8bit-48px-32px-16px-sample.ico';
+
+        $ico=new Ico();
+        $ok=$ico->loadFile($iconFile);
+        $this->assertTrue($ok);
+
+        $count=$ico->getTotalIcons();
+        $this->assertEquals(6, $count);
+
+        $this->assertIconMetadata($ico, 0, 32, 32, 16, 4);
+        $this->assertIconMetadata($ico, 1, 16, 16, 16, 4);
+        $this->assertIconMetadata($ico, 2, 32, 32, 256, 8);
+        $this->assertIconMetadata($ico, 3, 16, 16, 256, 8);
+        $this->assertIconMetadata($ico, 4, 48, 48, 256, 8);
+        $this->assertIconMetadata($ico, 5, 48, 48, 16, 4);
+
+
+        //we use a bright green background to ensure we spot obvious masking issues
+        $ico->setBackground('#00ff00');
+        $im = $ico->getImage(2);
+        $this->assertInternalType('resource', $im);
+
+        $this->assertImageLooksLike('8bit-32px-expected.png', $im);
+    }
+
+    private function assertIconMetadata(Ico $ico, $idx, $w, $h, $c, $b)
+    {
+        $info=$ico->getIconInfo($idx);
+        $this->assertEquals($w, $info['Width'], "Unexpected width for icon $idx");
+        $this->assertEquals($h, $info['Height'], "Unexpected height for icon $idx");
+        $this->assertEquals($c, $info['ColorCount'], "Unexpected colour count for icon $idx");
+        $this->assertEquals($b, $info['BitCount'], "Unexpected bit depth for icon $idx");
+    }
+
     private function assertImageLooksLike($expected, $im)
     {
+        $expectedFile='./tests/assets/'.$expected;
+        //can regenerate expected results by deleting and re-running test
+        if (!file_exists($expectedFile)) {
+            imagepng($im, $expectedFile, 0);
+            $this->markTestSkipped('Regenerated $expected  - skipping test');
+        }
+
         //save icon as PNG with no compression
         ob_start();
         imagepng($im, null, 0);
