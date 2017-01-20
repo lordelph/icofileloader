@@ -18,9 +18,9 @@ Please see [CONTRIBUTING](https://github.com/lordelph/icofileloader/blob/master/
 ## Credits
 
 - [Paul Dixon](http://blog.dixo.net) - 2017 modernization / update
-- [Diogo Resende](https://www.phpclasses.org/package/2369-PHP-Extract-graphics-from-ico-files-into-PNG-images.html). Original author of 2005 library this was derived on.
+- [Diogo Resende](https://www.phpclasses.org/package/2369-PHP-Extract-graphics-from-ico-files-into-PNG-images.html). Original author of 2005 library this was derived from.
 
-Thanks also to the [PHP League's skeleton project](https://github.com/thephpleague/skeleton) from this this project's structure was derived.
+Thanks also to the [PHP League's skeleton project](https://github.com/thephpleague/skeleton) from which this project's structure was derived.
 
 ## License
 
@@ -28,7 +28,7 @@ The MIT License (MIT). Please see [License File](https://github.com/thephpleague
 
 *Note: this was based on some classes originally written in 2005 by [Diogo Resende](https://www.phpclasses.org/package/2369-PHP-Extract-graphics-from-ico-files-into-PNG-images.html). 
 While these were originally provided on the PHPClasses site under a GPL license,
-Diogo kindly agreed to allow them to be used on an MIT license.*
+Diogo kindly agreed to allow them to be licensed under an MIT license.*
 
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
 [ico-travis]: https://img.shields.io/travis/lordelph/icofileloader/master.svg?style=flat-square
