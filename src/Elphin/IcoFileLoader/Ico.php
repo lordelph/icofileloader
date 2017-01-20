@@ -3,29 +3,19 @@
 namespace Elphin\IcoFileLoader;
 
 /**
- * Class Ico
  * Open ICO files and extract any size/depth to PNG format.
- *
- * @author Diogo Resende <me@diogoresende.net>
- *
- * @version 0.1
- **/
+ */
 class Ico
 {
     /**
-     * Ico::bgcolor
      * Background color on icon extraction.
-     *
      * @var array(R, G, B) = array(255, 255, 255)
-     **/
+     */
     public $bgcolor = [255, 255, 255];
 
     /**
-     * Ico::bgcolor_transparent
-     * Is background color transparent?
-     *
-     * @var bool = false
-     **/
+     * @var bool Is background color transparent?
+     */
     public $bgcolorTransparent = false;
 
     private $filename;
@@ -33,7 +23,7 @@ class Ico
     private $formats;
 
     /**
-     * Ico constructor.
+     * Constructor
      *
      * @param string $path optional path to ICO file
      */
@@ -51,7 +41,7 @@ class Ico
      * @param string $path Path to ICO file
      *
      * @return bool Success
-     **/
+     */
     public function loadFile($path)
     {
         $this->filename = $path;
@@ -76,7 +66,7 @@ class Ico
      * @param string $data Binary data of ICO file
      *
      * @return bool Success
-     **/
+     */
     private function loadData($data)
     {
         $this->formats = [];
@@ -196,20 +186,19 @@ class Ico
      * Return the total icons extracted at the moment.
      *
      * @return int Total icons
-     **/
+     */
     public function getTotalIcons()
     {
         return count($this->formats);
     }
 
     /**
-     * Ico::GetIconInfo()
      * Return the icon header corresponding to that index.
      *
      * @param int $index Icon index
      *
      * @return resource|bool Icon header or false
-     **/
+     */
     public function getIconInfo($index)
     {
         if (isset($this->formats[$index])) {
@@ -227,7 +216,7 @@ class Ico
      * @param int $red Red component
      * @param int $green Green component
      * @param int $blue Blue component
-     **/
+     */
     public function setBackground($red = 255, $green = 255, $blue = 255)
     {
         if (is_string($red) && preg_match('/^\#[0-9a-f]{6}$/', $red)) {
@@ -242,13 +231,13 @@ class Ico
     /**
      * Set background color to be saved as transparent.
      *
-     * @param bool $is_transparent Is Transparent or not
+     * @param bool $transparent Is Transparent or not
      *
      * @return bool Is Transparent or not
-     **/
-    public function setBackgroundTransparent($is_transparent = true)
+     */
+    public function setBackgroundTransparent($transparent = true)
     {
-        return $this->bgcolorTransparent = $is_transparent;
+        return $this->bgcolorTransparent = $transparent;
     }
 
     /**
@@ -423,7 +412,6 @@ class Ico
     }
 
     /**
-     * Ico::AllocateColor()
      * Allocate a color on $im resource. This function prevents
      * from allocating same colors on the same pallete. Instead
      * if it finds that the color is already allocated, it only
@@ -437,7 +425,7 @@ class Ico
      * @param int $alpha Alpha channel
      *
      * @return int Color index
-     **/
+     */
     private function allocateColor(&$im, $red, $green, $blue, $alpha = 0)
     {
         $c = imagecolorexactalpha($im, $red, $green, $blue, $alpha);
