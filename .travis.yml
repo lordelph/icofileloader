@@ -15,10 +15,11 @@ cache:
   directories:
     - $HOME/.composer/cache
 
-matrix:
-  include:
-    - php: 5.6
-      env: 'COMPOSER_FLAGS="--prefer-stable --prefer-lowest"'
+#build will fail using lowest version composer packages only for a bug in php-cs
+#matrix:
+#  include:
+#    - php: 5.6
+#      env: 'COMPOSER_FLAGS="--prefer-stable --prefer-lowest"'
 
 before_script:
   - travis_retry composer self-update
