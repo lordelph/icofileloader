@@ -1,22 +1,16 @@
 # Changelog
 
-All Notable changes to `IcoFileLoader` will be documented in this file.
+All Notable changes to `IcoFileLoader` will be documented here. 
+Releases follow [Semantic Versioning](http://semver.org/) princples,
+and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
+principles.
 
-Updates should follow the [Keep a CHANGELOG](http://keepachangelog.com/) principles.
+## [unreleased] - 2017-01-20
 
-## NEXT - YYYY-MM-DD
+### Change
+- Refactored original classes to follow PSR-2 and added test coverage to enable more significant refactoring to occur.
+
+## 0.0.1 - 2017-01-20
 
 ### Added
-- Nothing
-
-### Deprecated
-- Nothing
-
-### Fixed
-- Nothing
-
-### Removed
-- Nothing
-
-### Security
-- Nothing
+- Original 2005 sources from Diogo Resende
