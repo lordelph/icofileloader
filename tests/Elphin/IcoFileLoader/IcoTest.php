@@ -5,9 +5,9 @@ use Elphin\IcoFileLoader\Ico;
 
 class IcoTest extends \PHPUnit_Framework_TestCase
 {
-    public function testBasic()
+    public function test32bitIcon()
     {
-        $iconFile = './tests/assets/github.ico';
+        $iconFile = './tests/assets/32bit-16px-32px-sample.ico';
 
         $ico = new Ico();
         $ok = $ico->loadFile($iconFile);
@@ -16,67 +16,37 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $count = $ico->getTotalIcons();
         $this->assertEquals(2, $count);
 
-        //get first icon and check info looks ok
-        $result = $ico->getIconInfo(0);
-        $this->assertInternalType('array', $result);
-        $this->assertArrayHasKey('Width', $result);
-        $this->assertArrayHasKey('Height', $result);
-        $this->assertArrayHasKey('ColorCount', $result);
-        $this->assertArrayHasKey('Reserved', $result);
-        $this->assertArrayHasKey('Planes', $result);
-        $this->assertArrayHasKey('BitCount', $result);
-        $this->assertArrayHasKey('SizeInBytes', $result);
-        $this->assertArrayHasKey('FileOffset', $result);
-        $this->assertArrayHasKey('header', $result);
-        $this->assertArrayHasKey('colors', $result);
-
-        $this->assertEquals(16, $result['Width']);
-        $this->assertEquals(16, $result['Height']);
-        $this->assertEquals(32, $result['BitCount']);
-
-        $this->assertInternalType('array', $ico->getIconInfo(1), "expect a second icon in this file");
+        $this->assertIconMetadata($ico, 0, 16, 16, 256, 32);
+        $this->assertIconMetadata($ico, 1, 32, 32, 256, 32);
         $this->assertFalse($ico->getIconInfo(2), "do not expect a third icon to be found");
 
-        $ico->setBackground('#ff0000');
+        $ico->setBackground('#00ff00');
         $im = $ico->getImage(0);
-        $this->assertInternalType('resource', $im);
+
 
         //save icon as PNG with no compression
-        $this->assertImageLooksLike('github.png', $im);
+        $this->assertImageLooksLike('32bit-32px-expected.png', $im);
     }
 
     public function test4bitIcon()
     {
-        $iconFile = './tests/assets/4bit-32px-16px-sample.ico';
-
-        $ico = new Ico();
-        $ok = $ico->loadFile($iconFile);
-        $this->assertTrue($ok);
-
-        $count = $ico->getTotalIcons();
-        $this->assertEquals(2, $count);
+        $ico = new Ico('./tests/assets/4bit-32px-16px-sample.ico');
+        $this->assertEquals(2, $ico->getTotalIcons());
 
         $this->assertIconMetadata($ico, 0, 32, 32, 16, 4);
         $this->assertIconMetadata($ico, 1, 16, 16, 16, 4);
 
         //we use a bright green background to ensure we spot obvious masking issues
         $ico->setBackground('#00ff00');
-        $im = $ico->getImage(0);
-        $this->assertInternalType('resource', $im);
 
+        $im = $ico->getImage(0);
         $this->assertImageLooksLike('4bit-32px-expected.png', $im);
     }
 
     public function test8bitIcon()
     {
-        $iconFile = './tests/assets/8bit-48px-32px-16px-sample.ico';
-
-        $ico = new Ico();
-        $ok = $ico->loadFile($iconFile);
-        $this->assertTrue($ok);
-
-        $count = $ico->getTotalIcons();
-        $this->assertEquals(6, $count);
+        $ico = new Ico('./tests/assets/8bit-48px-32px-16px-sample.ico');
+        $this->assertEquals(6, $ico->getTotalIcons());
 
         $this->assertIconMetadata($ico, 0, 32, 32, 16, 4);
         $this->assertIconMetadata($ico, 1, 16, 16, 16, 4);
@@ -89,14 +59,53 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         //we use a bright green background to ensure we spot obvious masking issues
         $ico->setBackground('#00ff00');
         $im = $ico->getImage(2);
-        $this->assertInternalType('resource', $im);
 
         $this->assertImageLooksLike('8bit-32px-expected.png', $im);
+    }
+
+    public function test24bitIcon()
+    {
+        $ico = new Ico('./tests/assets/24bit-32px-sample.ico');
+        $this->assertEquals(1, $ico->getTotalIcons());
+        $this->assertIconMetadata($ico, 0, 32, 32, 256, 24);
+
+        //we use a bright green background to ensure we spot obvious masking issues
+        $ico->setBackground('#00ff00');
+        $im = $ico->getImage(0);
+        $this->assertImageLooksLike('24bit-32px-expected.png', $im);
+    }
+
+    /**
+     * useful durign test development, this can spit out some assertions for regression tests
+     * @param Ico $ico
+     */
+    protected function generateTest(Ico $ico)
+    {
+        for ($x=0; $x<$ico->getTotalIcons(); $x++) {
+            $info = $ico->getIconInfo($x);
+            echo '$this->assertIconMetadata($ico, 0, ',
+            $info['Width'], ', ', $info['Height'], ', ', $info['ColorCount'], ', ', $info['BitCount'], ");\n";
+        }
     }
 
     private function assertIconMetadata(Ico $ico, $idx, $w, $h, $c, $b)
     {
         $info = $ico->getIconInfo($idx);
+
+        //check structure is expected
+        $this->assertInternalType('array', $info);
+        $this->assertArrayHasKey('Width', $info);
+        $this->assertArrayHasKey('Height', $info);
+        $this->assertArrayHasKey('ColorCount', $info);
+        $this->assertArrayHasKey('Reserved', $info);
+        $this->assertArrayHasKey('Planes', $info);
+        $this->assertArrayHasKey('BitCount', $info);
+        $this->assertArrayHasKey('SizeInBytes', $info);
+        $this->assertArrayHasKey('FileOffset', $info);
+        $this->assertArrayHasKey('header', $info);
+        $this->assertArrayHasKey('colors', $info);
+
+        //check image is of form expected
         $this->assertEquals($w, $info['Width'], "Unexpected width for icon $idx");
         $this->assertEquals($h, $info['Height'], "Unexpected height for icon $idx");
         $this->assertEquals($c, $info['ColorCount'], "Unexpected colour count for icon $idx");
@@ -105,6 +114,8 @@ class IcoTest extends \PHPUnit_Framework_TestCase
 
     private function assertImageLooksLike($expected, $im)
     {
+        $this->assertInternalType('resource', $im);
+
         $expectedFile = './tests/assets/' . $expected;
         //can regenerate expected results by deleting and re-running test
         if (!file_exists($expectedFile)) {
