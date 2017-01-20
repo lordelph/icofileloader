@@ -20,7 +20,7 @@ class Ico
 
     private $filename;
     private $ico;
-    private $formats;
+    private $iconDirEntry;
 
     /**
      * Constructor
@@ -69,119 +69,132 @@ class Ico
      */
     private function loadData($data)
     {
-        $this->formats = [];
+        $this->iconDirEntry = [];
 
-        /**
-         * ICO header.
-         **/
+        //extract ICONDIR header
         $icodata = unpack('SReserved/SType/SCount', $data);
         $this->ico = $icodata;
         $data = substr($data, 6);
 
-        /*
-         * Extract each icon header
-         **/
+        //extract ICONDIRENTRY structures
+        $data=$this->extractIconDirEntries($data);
+
+        // Extract additional headers for each extracted icon header
+        $iconCount = count($this->iconDirEntry);
+        for ($i = 0; $i < $iconCount; ++$i) {
+            $bitmapInfoHeader = unpack(
+                'LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/' .
+                'LXpixelsPerM/LYpixelsPerM/LColorsUsed/LColorsImportant',
+                substr($data, $this->iconDirEntry[$i]['FileOffset'])
+            );
+
+            $this->iconDirEntry[$i]['header'] = $bitmapInfoHeader;
+            $this->iconDirEntry[$i]['colors'] = [];
+            $this->iconDirEntry[$i]['BitCount'] = $this->iconDirEntry[$i]['header']['BitCount'];
+
+            switch ($this->iconDirEntry[$i]['BitCount']) {
+                case 32:
+                case 24:
+                    $this->extract24BitData($i, $data);
+                    break;
+                case 8:
+                case 4:
+                    $this->extract8BitData($i, $data);
+                    break;
+                case 1:
+                    $this->extract1BitData($i, $data);
+                    break;
+            }
+            $this->iconDirEntry[$i]['data_length'] = strlen($this->iconDirEntry[$i]['data']);
+        }
+        return true;
+    }
+
+    private function extract24BitData($i, $data)
+    {
+        $length = $this->iconDirEntry[$i]['header']['Width'] *
+            $this->iconDirEntry[$i]['header']['Height'] *
+            ($this->iconDirEntry[$i]['BitCount'] / 8);
+        $this->iconDirEntry[$i]['data'] = substr(
+            $data,
+            $this->iconDirEntry[$i]['FileOffset'] + $this->iconDirEntry[$i]['header']['Size'],
+            $length
+        );
+    }
+
+    private function extract8BitData($i, $data)
+    {
+        $icodata = substr(
+            $data,
+            $this->iconDirEntry[$i]['FileOffset'] + $this->iconDirEntry[$i]['header']['Size'],
+            $this->iconDirEntry[$i]['ColorCount'] * 4
+        );
+        $offset = 0;
+        for ($j = 0; $j < $this->iconDirEntry[$i]['ColorCount']; ++$j) {
+            $this->iconDirEntry[$i]['colors'][] = [
+                'blue' => ord($icodata[$offset]),
+                'green' => ord($icodata[$offset + 1]),
+                'red' => ord($icodata[$offset + 2]),
+                'reserved' => ord($icodata[$offset + 3]),
+            ];
+            $offset += 4;
+        }
+        $length = $this->iconDirEntry[$i]['header']['Width'] *
+            $this->iconDirEntry[$i]['header']['Height'] *
+            (1 + $this->iconDirEntry[$i]['BitCount']) / $this->iconDirEntry[$i]['BitCount'];
+        $this->iconDirEntry[$i]['data'] = substr(
+            $data,
+            $this->iconDirEntry[$i]['FileOffset'] +
+            ($this->iconDirEntry[$i]['ColorCount'] * 4) +
+            $this->iconDirEntry[$i]['header']['Size'],
+            $length
+        );
+    }
+
+    private function extract1BitData($i, $data)
+    {
+        $icodata = substr(
+            $data,
+            $this->iconDirEntry[$i]['FileOffset'] + $this->iconDirEntry[$i]['header']['Size'],
+            $this->iconDirEntry[$i]['ColorCount'] * 4
+        );
+
+        $this->iconDirEntry[$i]['colors'][] = [
+            'blue' => ord($icodata[0]),
+            'green' => ord($icodata[1]),
+            'red' => ord($icodata[2]),
+            'reserved' => ord($icodata[3]),
+        ];
+        $this->iconDirEntry[$i]['colors'][] = [
+            'blue' => ord($icodata[4]),
+            'green' => ord($icodata[5]),
+            'red' => ord($icodata[6]),
+            'reserved' => ord($icodata[7]),
+        ];
+
+        $length = $this->iconDirEntry[$i]['header']['Width'] * $this->iconDirEntry[$i]['header']['Height'] / 8;
+        $this->iconDirEntry[$i]['data'] = substr(
+            $data,
+            $this->iconDirEntry[$i]['FileOffset'] + $this->iconDirEntry[$i]['header']['Size'] + 8,
+            $length
+        );
+    }
+
+    private function extractIconDirEntries($data)
+    {
         for ($i = 0; $i < $this->ico['Count']; ++$i) {
             $icodata = unpack('CWidth/CHeight/CColorCount/CReserved/SPlanes/SBitCount/LSizeInBytes/LFileOffset', $data);
             $icodata['FileOffset'] -= ($this->ico['Count'] * 16) + 6;
             if ($icodata['ColorCount'] == 0) {
                 $icodata['ColorCount'] = 256;
             }
-            $this->formats[] = $icodata;
+            $this->iconDirEntry[] = $icodata;
 
             $data = substr($data, 16);
         }
 
-        /*
-         * Extract aditional headers for each extracted icon header
-         **/
-        $formatCount = count($this->formats);
-        for ($i = 0; $i < $formatCount; ++$i) {
-            $icodata = unpack(
-                'LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/' .
-                'LXpixelsPerM/LYpixelsPerM/LColorsUsed/LColorsImportant',
-                substr($data, $this->formats[$i]['FileOffset'])
-            );
-
-            $this->formats[$i]['header'] = $icodata;
-            $this->formats[$i]['colors'] = [];
-
-            $this->formats[$i]['BitCount'] = $this->formats[$i]['header']['BitCount'];
-
-            switch ($this->formats[$i]['BitCount']) {
-                case 32:
-                case 24:
-                    $length = $this->formats[$i]['header']['Width'] *
-                        $this->formats[$i]['header']['Height'] *
-                        ($this->formats[$i]['BitCount'] / 8);
-                    $this->formats[$i]['data'] = substr(
-                        $data,
-                        $this->formats[$i]['FileOffset'] + $this->formats[$i]['header']['Size'],
-                        $length
-                    );
-                    break;
-                case 8:
-                case 4:
-                    $icodata = substr(
-                        $data,
-                        $this->formats[$i]['FileOffset'] + $icodata['Size'],
-                        $this->formats[$i]['ColorCount'] * 4
-                    );
-                    $offset = 0;
-                    for ($j = 0; $j < $this->formats[$i]['ColorCount']; ++$j) {
-                        $this->formats[$i]['colors'][] = [
-                            'blue' => ord($icodata[$offset]),
-                            'green' => ord($icodata[$offset + 1]),
-                            'red' => ord($icodata[$offset + 2]),
-                            'reserved' => ord($icodata[$offset + 3]),
-                        ];
-                        $offset += 4;
-                    }
-                    $length = $this->formats[$i]['header']['Width'] *
-                        $this->formats[$i]['header']['Height'] *
-                        (1 + $this->formats[$i]['BitCount']) / $this->formats[$i]['BitCount'];
-                    $this->formats[$i]['data'] = substr(
-                        $data,
-                        $this->formats[$i]['FileOffset'] +
-                        ($this->formats[$i]['ColorCount'] * 4) +
-                        $this->formats[$i]['header']['Size'],
-                        $length
-                    );
-                    break;
-                case 1:
-                    $icodata = substr(
-                        $data,
-                        $this->formats[$i]['FileOffset'] + $icodata['Size'],
-                        $this->formats[$i]['ColorCount'] * 4
-                    );
-
-                    $this->formats[$i]['colors'][] = [
-                        'blue' => ord($icodata[0]),
-                        'green' => ord($icodata[1]),
-                        'red' => ord($icodata[2]),
-                        'reserved' => ord($icodata[3]),
-                    ];
-                    $this->formats[$i]['colors'][] = [
-                        'blue' => ord($icodata[4]),
-                        'green' => ord($icodata[5]),
-                        'red' => ord($icodata[6]),
-                        'reserved' => ord($icodata[7]),
-                    ];
-
-                    $length = $this->formats[$i]['header']['Width'] * $this->formats[$i]['header']['Height'] / 8;
-                    $this->formats[$i]['data'] = substr(
-                        $data,
-                        $this->formats[$i]['FileOffset'] + $this->formats[$i]['header']['Size'] + 8,
-                        $length
-                    );
-                    break;
-            }
-            $this->formats[$i]['data_length'] = strlen($this->formats[$i]['data']);
-        }
-
-        return true;
+        return $data;
     }
-
     /**
      * Return the total icons extracted at the moment.
      *
@@ -189,7 +202,7 @@ class Ico
      */
     public function getTotalIcons()
     {
-        return count($this->formats);
+        return count($this->iconDirEntry);
     }
 
     /**
@@ -201,8 +214,8 @@ class Ico
      */
     public function getIconInfo($index)
     {
-        if (isset($this->formats[$index])) {
-            return $this->formats[$index];
+        if (isset($this->iconDirEntry[$index])) {
+            return $this->iconDirEntry[$index];
         }
 
         return false;
@@ -250,35 +263,35 @@ class Ico
      **/
     public function getImage($index)
     {
-        if (!isset($this->formats[$index])) {
+        if (!isset($this->iconDirEntry[$index])) {
             return false;
         }
 
         // create image filled with desired background color
-        $im = imagecreatetruecolor($this->formats[$index]['Width'], $this->formats[$index]['Height']);
+        $im = imagecreatetruecolor($this->iconDirEntry[$index]['Width'], $this->iconDirEntry[$index]['Height']);
         $bgcolor = $this->allocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2]);
-        imagefilledrectangle($im, 0, 0, $this->formats[$index]['Width'], $this->formats[$index]['Height'], $bgcolor);
+        imagefilledrectangle($im, 0, 0, $this->iconDirEntry[$index]['Width'], $this->iconDirEntry[$index]['Height'], $bgcolor);
 
         if ($this->bgcolorTransparent) {
             imagecolortransparent($im, $bgcolor);
         }
 
         // now paint pixels based on bit count
-        switch ($this->formats[$index]['BitCount']) {
+        switch ($this->iconDirEntry[$index]['BitCount']) {
             case 32:
-                $this->render32bit($this->formats[$index], $im);
+                $this->render32bit($this->iconDirEntry[$index], $im);
                 break;
             case 24:
-                $this->render24bit($this->formats[$index], $im);
+                $this->render24bit($this->iconDirEntry[$index], $im);
                 break;
             case 8:
-                $this->render8bit($this->formats[$index], $im);
+                $this->render8bit($this->iconDirEntry[$index], $im);
                 break;
             case 4:
-                $this->render4bit($this->formats[$index], $im);
+                $this->render4bit($this->iconDirEntry[$index], $im);
                 break;
             case 1:
-                $this->render1bit($this->formats[$index], $im);
+                $this->render1bit($this->iconDirEntry[$index], $im);
                 break;
         }
 
