@@ -105,10 +105,10 @@ class Ico
         /*
          * Extract aditional headers for each extracted icon header
          **/
-        $formatCount=count($this->formats);
+        $formatCount = count($this->formats);
         for ($i = 0; $i < $formatCount; ++$i) {
             $icodata = unpack(
-                'LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/'.
+                'LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/' .
                 'LXpixelsPerM/LYpixelsPerM/LColorsUsed/LColorsImportant',
                 substr($data, $this->formats[$i]['FileOffset'])
             );
@@ -153,8 +153,8 @@ class Ico
                     $this->formats[$i]['data'] = substr(
                         $data,
                         $this->formats[$i]['FileOffset'] +
-                            ($this->formats[$i]['ColorCount'] * 4) +
-                            $this->formats[$i]['header']['Size'],
+                        ($this->formats[$i]['ColorCount'] * 4) +
+                        $this->formats[$i]['header']['Size'],
                         $length
                     );
                     break;
@@ -224,16 +224,16 @@ class Ico
      * the 3 color components or set $red = '#xxxxxx' (HTML format)
      * and leave all other blanks.
      *
-     * @param int $red   Red component
+     * @param int $red Red component
      * @param int $green Green component
-     * @param int $blue  Blue component
+     * @param int $blue Blue component
      **/
     public function setBackground($red = 255, $green = 255, $blue = 255)
     {
         if (is_string($red) && preg_match('/^\#[0-9a-f]{6}$/', $red)) {
-            $green = hexdec($red[3].$red[4]);
-            $blue = hexdec($red[5].$red[6]);
-            $red = hexdec($red[1].$red[2]);
+            $green = hexdec($red[3] . $red[4]);
+            $blue = hexdec($red[5] . $red[6]);
+            $red = hexdec($red[1] . $red[2]);
         }
 
         $this->bgcolor = [$red, $green, $blue];
@@ -275,9 +275,9 @@ class Ico
         }
 
         //we may build a string of 1/0 to represent the XOR mask
-        $maskBits='';
+        $maskBits = '';
         //we may build a palette for 8 bit images
-        $palette=[];
+        $palette = [];
 
         // allocate palette and get XOR image
         if (in_array($this->formats[$index]['BitCount'], [1, 4, 8, 24])) {
@@ -381,17 +381,17 @@ class Ico
                 $offset = 0;
                 $maskoffset = 0;
                 for ($i = $this->formats[$index]['Height'] - 1; $i >= 0; --$i) {
-                    for ($j = 0; $j < $this->formats[$index]['Width']; $j+=2) {
+                    for ($j = 0; $j < $this->formats[$index]['Width']; $j += 2) {
                         $colorByte = ord($this->formats[$index]['data'][$offset]);
-                        $lowNibble=$colorByte&0x0f;
-                        $highNibble=($colorByte&0xf0) >> 4;
+                        $lowNibble = $colorByte & 0x0f;
+                        $highNibble = ($colorByte & 0xf0) >> 4;
 
                         if ($maskBits[$maskoffset++] == 0) {
                             imagesetpixel($im, $j, $i, $palette[$highNibble]);
                         }
 
                         if ($maskBits[$maskoffset++] == 0) {
-                            imagesetpixel($im, $j+1, $i, $palette[$lowNibble]);
+                            imagesetpixel($im, $j + 1, $i, $palette[$lowNibble]);
                         }
                         $offset++;
                     }
@@ -430,11 +430,11 @@ class Ico
      * returns the index to that color.
      * It supports alpha channel.
      *
-     * @param resource $im     Image resource
-     * @param int      $red    Red component
-     * @param int      $green  Green component
-     * @param int      $blue   Blue component
-     * @param int      $alpha Alpha channel
+     * @param resource $im Image resource
+     * @param int $red Red component
+     * @param int $green Green component
+     * @param int $blue Blue component
+     * @param int $alpha Alpha channel
      *
      * @return int Color index
      **/

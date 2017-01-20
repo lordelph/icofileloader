@@ -9,15 +9,15 @@ class IcoTest extends \PHPUnit_Framework_TestCase
     {
         $iconFile = './tests/assets/github.ico';
 
-        $ico=new Ico();
-        $ok=$ico->loadFile($iconFile);
+        $ico = new Ico();
+        $ok = $ico->loadFile($iconFile);
         $this->assertTrue($ok);
 
-        $count=$ico->getTotalIcons();
+        $count = $ico->getTotalIcons();
         $this->assertEquals(2, $count);
 
         //get first icon and check info looks ok
-        $result=$ico->getIconInfo(0);
+        $result = $ico->getIconInfo(0);
         $this->assertInternalType('array', $result);
         $this->assertArrayHasKey('Width', $result);
         $this->assertArrayHasKey('Height', $result);
@@ -49,11 +49,11 @@ class IcoTest extends \PHPUnit_Framework_TestCase
     {
         $iconFile = './tests/assets/4bit-32px-16px-sample.ico';
 
-        $ico=new Ico();
-        $ok=$ico->loadFile($iconFile);
+        $ico = new Ico();
+        $ok = $ico->loadFile($iconFile);
         $this->assertTrue($ok);
 
-        $count=$ico->getTotalIcons();
+        $count = $ico->getTotalIcons();
         $this->assertEquals(2, $count);
 
         $this->assertIconMetadata($ico, 0, 32, 32, 16, 4);
@@ -71,11 +71,11 @@ class IcoTest extends \PHPUnit_Framework_TestCase
     {
         $iconFile = './tests/assets/8bit-48px-32px-16px-sample.ico';
 
-        $ico=new Ico();
-        $ok=$ico->loadFile($iconFile);
+        $ico = new Ico();
+        $ok = $ico->loadFile($iconFile);
         $this->assertTrue($ok);
 
-        $count=$ico->getTotalIcons();
+        $count = $ico->getTotalIcons();
         $this->assertEquals(6, $count);
 
         $this->assertIconMetadata($ico, 0, 32, 32, 16, 4);
@@ -96,7 +96,7 @@ class IcoTest extends \PHPUnit_Framework_TestCase
 
     private function assertIconMetadata(Ico $ico, $idx, $w, $h, $c, $b)
     {
-        $info=$ico->getIconInfo($idx);
+        $info = $ico->getIconInfo($idx);
         $this->assertEquals($w, $info['Width'], "Unexpected width for icon $idx");
         $this->assertEquals($h, $info['Height'], "Unexpected height for icon $idx");
         $this->assertEquals($c, $info['ColorCount'], "Unexpected colour count for icon $idx");
@@ -105,7 +105,7 @@ class IcoTest extends \PHPUnit_Framework_TestCase
 
     private function assertImageLooksLike($expected, $im)
     {
-        $expectedFile='./tests/assets/'.$expected;
+        $expectedFile = './tests/assets/' . $expected;
         //can regenerate expected results by deleting and re-running test
         if (!file_exists($expectedFile)) {
             imagepng($im, $expectedFile, 0);
@@ -120,7 +120,7 @@ class IcoTest extends \PHPUnit_Framework_TestCase
 
         //it's possible this might break if the gd results change anything in their png encoding
         //but that should be rare - the aim here to catch everyday problems in library maintenance
-        $expected=file_get_contents('./tests/assets/'.$expected);
-        $this->assertTrue($expected===$imageData, 'generated image did not match expected '.$expected);
+        $expected = file_get_contents('./tests/assets/' . $expected);
+        $this->assertTrue($expected === $imageData, 'generated image did not match expected ' . $expected);
     }
 }
