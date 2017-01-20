@@ -10,14 +10,14 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $iconFile = './tests/assets/github.ico';
 
         $ico=new Ico();
-        $ok=$ico->LoadFile($iconFile);
+        $ok=$ico->loadFile($iconFile);
         $this->assertTrue($ok);
 
-        $count=$ico->TotalIcons();
+        $count=$ico->getTotalIcons();
         $this->assertEquals(2, $count);
 
         //get first icon and check info looks ok
-        $result=$ico->GetIconInfo(0);
+        $result=$ico->getIconInfo(0);
         $this->assertInternalType('array', $result);
         $this->assertArrayHasKey('Width', $result);
         $this->assertArrayHasKey('Height', $result);
@@ -33,11 +33,11 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(16, $result['Width']);
         $this->assertEquals(16, $result['Height']);
 
-        $this->assertInternalType('array', $ico->GetIconInfo(1), "expect a second icon in this file");
-        $this->assertFalse($ico->GetIconInfo(2), "do not expect a third icon to be found");
+        $this->assertInternalType('array', $ico->getIconInfo(1), "expect a second icon in this file");
+        $this->assertFalse($ico->getIconInfo(2), "do not expect a third icon to be found");
 
-        $ico->SetBackground('#ff0000');
-        $im = $ico->GetIcon(0);
+        $ico->setBackground('#ff0000');
+        $im = $ico->getImage(0);
         $this->assertInternalType('resource', $im);
 
         //save icon as PNG with no compression

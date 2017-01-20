@@ -26,9 +26,9 @@ class Ico
      *
      * @var bool = false
      **/
-    public $bgcolor_transparent = false;
+    public $bgcolorTransparent = false;
 
-    private $_filename;
+    private $filename;
     private $ico;
     private $formats;
 
@@ -40,12 +40,11 @@ class Ico
     public function __construct($path = '')
     {
         if (strlen($path) > 0) {
-            $this->LoadFile($path);
+            $this->loadFile($path);
         }
     }
 
     /**
-     * Ico::LoadFile()
      * Load an ICO file (don't need to call this is if fill the
      * parameter in the class constructor).
      *
@@ -53,9 +52,9 @@ class Ico
      *
      * @return bool Success
      **/
-    public function LoadFile($path)
+    public function loadFile($path)
     {
-        $this->_filename = $path;
+        $this->filename = $path;
         if (($fp = @fopen($path, 'rb')) !== false) {
             $data = '';
             while (!feof($fp)) {
@@ -63,23 +62,22 @@ class Ico
             }
             fclose($fp);
 
-            return $this->LoadData($data);
+            return $this->loadData($data);
         }
 
         return false;
     }
 
     /**
-     * Ico::LoadData()
      * Load an ICO data. If you prefer to open the file
      * and return the binary data you can use this function
-     * directly. Otherwise use LoadFile() instead.
+     * directly. Otherwise use loadFile() instead.
      *
      * @param string $data Binary data of ICO file
      *
      * @return bool Success
      **/
-    private function LoadData($data)
+    private function loadData($data)
     {
         $this->formats = [];
 
@@ -108,7 +106,11 @@ class Ico
          * Extract aditional headers for each extracted icon header
          **/
         for ($i = 0; $i < count($this->formats); ++$i) {
-            $icodata = unpack('LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/LXpixelsPerM/LYpixelsPerM/LColorsUsed/LColorsImportant', substr($data, $this->formats[$i]['FileOffset']));
+            $icodata = unpack(
+                'LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/'.
+                'LXpixelsPerM/LYpixelsPerM/LColorsUsed/LColorsImportant',
+                substr($data, $this->formats[$i]['FileOffset'])
+            );
 
             $this->formats[$i]['header'] = $icodata;
             $this->formats[$i]['colors'] = [];
@@ -118,12 +120,22 @@ class Ico
             switch ($this->formats[$i]['BitCount']) {
                 case 32:
                 case 24:
-                    $length = $this->formats[$i]['header']['Width'] * $this->formats[$i]['header']['Height'] * ($this->formats[$i]['BitCount'] / 8);
-                    $this->formats[$i]['data'] = substr($data, $this->formats[$i]['FileOffset'] + $this->formats[$i]['header']['Size'], $length);
+                    $length = $this->formats[$i]['header']['Width'] *
+                        $this->formats[$i]['header']['Height'] *
+                        ($this->formats[$i]['BitCount'] / 8);
+                    $this->formats[$i]['data'] = substr(
+                        $data,
+                        $this->formats[$i]['FileOffset'] + $this->formats[$i]['header']['Size'],
+                        $length
+                    );
                     break;
                 case 8:
                 case 4:
-                    $icodata = substr($data, $this->formats[$i]['FileOffset'] + $icodata['Size'], $this->formats[$i]['ColorCount'] * 4);
+                    $icodata = substr(
+                        $data,
+                        $this->formats[$i]['FileOffset'] + $icodata['Size'],
+                        $this->formats[$i]['ColorCount'] * 4
+                    );
                     $offset = 0;
                     for ($j = 0; $j < $this->formats[$i]['ColorCount']; ++$j) {
                         $this->formats[$i]['colors'][] = [
@@ -134,11 +146,23 @@ class Ico
                         ];
                         $offset += 4;
                     }
-                    $length = $this->formats[$i]['header']['Width'] * $this->formats[$i]['header']['Height'] * (1 + $this->formats[$i]['BitCount']) / $this->formats[$i]['BitCount'];
-                    $this->formats[$i]['data'] = substr($data, $this->formats[$i]['FileOffset'] + ($this->formats[$i]['ColorCount'] * 4) + $this->formats[$i]['header']['Size'], $length);
+                    $length = $this->formats[$i]['header']['Width'] *
+                        $this->formats[$i]['header']['Height'] *
+                        (1 + $this->formats[$i]['BitCount']) / $this->formats[$i]['BitCount'];
+                    $this->formats[$i]['data'] = substr(
+                        $data,
+                        $this->formats[$i]['FileOffset'] +
+                            ($this->formats[$i]['ColorCount'] * 4) +
+                            $this->formats[$i]['header']['Size'],
+                        $length
+                    );
                     break;
                 case 1:
-                    $icodata = substr($data, $this->formats[$i]['FileOffset'] + $icodata['Size'], $this->formats[$i]['ColorCount'] * 4);
+                    $icodata = substr(
+                        $data,
+                        $this->formats[$i]['FileOffset'] + $icodata['Size'],
+                        $this->formats[$i]['ColorCount'] * 4
+                    );
 
                     $this->formats[$i]['colors'][] = [
                         'blue' => ord($icodata[0]),
@@ -154,7 +178,11 @@ class Ico
                     ];
 
                     $length = $this->formats[$i]['header']['Width'] * $this->formats[$i]['header']['Height'] / 8;
-                    $this->formats[$i]['data'] = substr($data, $this->formats[$i]['FileOffset'] + $this->formats[$i]['header']['Size'] + 8, $length);
+                    $this->formats[$i]['data'] = substr(
+                        $data,
+                        $this->formats[$i]['FileOffset'] + $this->formats[$i]['header']['Size'] + 8,
+                        $length
+                    );
                     break;
             }
             $this->formats[$i]['data_length'] = strlen($this->formats[$i]['data']);
@@ -164,12 +192,11 @@ class Ico
     }
 
     /**
-     * Ico::TotalIcons()
      * Return the total icons extracted at the moment.
      *
      * @return int Total icons
      **/
-    public function TotalIcons()
+    public function getTotalIcons()
     {
         return count($this->formats);
     }
@@ -182,7 +209,7 @@ class Ico
      *
      * @return resource|bool Icon header or false
      **/
-    public function GetIconInfo($index)
+    public function getIconInfo($index)
     {
         if (isset($this->formats[$index])) {
             return $this->formats[$index];
@@ -192,7 +219,6 @@ class Ico
     }
 
     /**
-     * Ico::SetBackground()
      * Changes background color of extraction. You can set
      * the 3 color components or set $red = '#xxxxxx' (HTML format)
      * and leave all other blanks.
@@ -201,7 +227,7 @@ class Ico
      * @param int $green Green component
      * @param int $blue  Blue component
      **/
-    public function SetBackground($red = 255, $green = 255, $blue = 255)
+    public function setBackground($red = 255, $green = 255, $blue = 255)
     {
         if (is_string($red) && preg_match('/^\#[0-9a-f]{6}$/', $red)) {
             $green = hexdec($red[3].$red[4]);
@@ -213,20 +239,18 @@ class Ico
     }
 
     /**
-     * Ico::SetBackgroundTransparent()
      * Set background color to be saved as transparent.
      *
      * @param bool $is_transparent Is Transparent or not
      *
      * @return bool Is Transparent or not
      **/
-    public function SetBackgroundTransparent($is_transparent = true)
+    public function setBackgroundTransparent($is_transparent = true)
     {
-        return $this->bgcolor_transparent = $is_transparent;
+        return $this->bgcolorTransparent = $is_transparent;
     }
 
     /**
-     * Ico::GetImage()
      * Return an image resource with the icon stored
      * on the $index position of the ICO file.
      *
@@ -234,7 +258,7 @@ class Ico
      *
      * @return resource|bool Image resource
      **/
-    public function &GetIcon($index)
+    public function getImage($index)
     {
         if (!isset($this->formats[$index])) {
             return false;
@@ -248,13 +272,13 @@ class Ico
         /**
          * paint background.
          **/
-        $bgcolor = $this->AllocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2]);
+        $bgcolor = $this->allocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2]);
         imagefilledrectangle($im, 0, 0, $this->formats[$index]['Width'], $this->formats[$index]['Height'], $bgcolor);
 
         /*
          * set background color transparent
          **/
-        if ($this->bgcolor_transparent) {
+        if ($this->bgcolorTransparent) {
             imagecolortransparent($im, $bgcolor);
         }
 
@@ -268,10 +292,13 @@ class Ico
                  **/
                 $c = [];
                 for ($i = 0; $i < $this->formats[$index]['ColorCount']; ++$i) {
-                    $c[$i] = $this->AllocateColor($im, $this->formats[$index]['colors'][$i]['red'],
+                    $c[$i] = $this->allocateColor(
+                        $im,
+                        $this->formats[$index]['colors'][$i]['red'],
                         $this->formats[$index]['colors'][$i]['green'],
                         $this->formats[$index]['colors'][$i]['blue'],
-                        round($this->formats[$index]['colors'][$i]['reserved'] / 255 * 127));
+                        round($this->formats[$index]['colors'][$i]['reserved'] / 255 * 127)
+                    );
                 }
             }
 
@@ -282,7 +309,9 @@ class Ico
             if (($width % 32) > 0) {
                 $width += (32 - ($this->formats[$index]['Width'] % 32));
             }
-            $offset = $this->formats[$index]['Width'] * $this->formats[$index]['Height'] * $this->formats[$index]['BitCount'] / 8;
+            $offset = $this->formats[$index]['Width'] *
+                $this->formats[$index]['Height'] *
+                $this->formats[$index]['BitCount'] / 8;
             $total_bytes = ($width * $this->formats[$index]['Height']) / 8;
             $bits = '';
             $bytes = 0;
@@ -311,10 +340,13 @@ class Ico
                     for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
                         $color = substr($this->formats[$index]['data'], $offset, 4);
                         if (ord($color[3]) > 0) {
-                            $c = $this->AllocateColor($im, ord($color[2]),
+                            $c = $this->allocateColor(
+                                $im,
+                                ord($color[2]),
                                 ord($color[1]),
                                 ord($color[0]),
-                                127 - round(ord($color[3]) / 255 * 127));
+                                127 - round(ord($color[3]) / 255 * 127)
+                            );
                             imagesetpixel($im, $j, $i, $c);
                         }
                         $offset += 4;
@@ -331,7 +363,7 @@ class Ico
                     for ($j = 0; $j < $this->formats[$index]['Width']; ++$j) {
                         if ($bits[$bitoffset] == 0) {
                             $color = substr($this->formats[$index]['data'], $offset, 3);
-                            $c = $this->AllocateColor($im, ord($color[2]), ord($color[1]), ord($color[0]));
+                            $c = $this->allocateColor($im, ord($color[2]), ord($color[1]), ord($color[0]));
                             imagesetpixel($im, $j, $i, $c);
                         }
                         $offset += 3;
@@ -425,7 +457,7 @@ class Ico
      *
      * @return int Color index
      **/
-    private function AllocateColor(&$im, $red, $green, $blue, $alpha = 0)
+    private function allocateColor(&$im, $red, $green, $blue, $alpha = 0)
     {
         $c = imagecolorexactalpha($im, $red, $green, $blue, $alpha);
         if ($c >= 0) {
