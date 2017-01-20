@@ -1,0 +1,32 @@
+{
+    "name": "lordelph/icofileloader",
+    "description": "PHP package for reading .ico files, particularly website favicons",
+    "keywords": ["ico", "icon", "favicon", "extract", "load", "convert"],
+    "homepage": "https://github.com/lordelph/icofileloader",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Paul Dixon",
+            "email": "paul@elphin.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.6.0",
+        "ext-gd": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~5",
+        "squizlabs/php_codesniffer": "^2.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "": "src"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "check-style": "phpcs -p --standard=PSR2 --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 src tests",
+        "fix-style": "phpcbf -p --standard=PSR2 --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 src tests"
+    }
+}
