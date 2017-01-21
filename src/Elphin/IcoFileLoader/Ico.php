@@ -77,7 +77,7 @@ class Ico
         $data = substr($data, 6);
 
         //extract ICONDIRENTRY structures
-        $data=$this->extractIconDirEntries($data);
+        $data = $this->extractIconDirEntries($data);
 
         // Extract additional headers for each extracted icon header
         $iconCount = count($this->iconDirEntry);
@@ -195,6 +195,7 @@ class Ico
 
         return $data;
     }
+
     /**
      * Return the total icons extracted at the moment.
      *
@@ -270,7 +271,14 @@ class Ico
         // create image filled with desired background color
         $im = imagecreatetruecolor($this->iconDirEntry[$index]['Width'], $this->iconDirEntry[$index]['Height']);
         $bgcolor = $this->allocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2]);
-        imagefilledrectangle($im, 0, 0, $this->iconDirEntry[$index]['Width'], $this->iconDirEntry[$index]['Height'], $bgcolor);
+        imagefilledrectangle(
+            $im,
+            0,
+            0,
+            $this->iconDirEntry[$index]['Width'],
+            $this->iconDirEntry[$index]['Height'],
+            $bgcolor
+        );
 
         if ($this->bgcolorTransparent) {
             imagecolortransparent($im, $bgcolor);
@@ -304,17 +312,17 @@ class Ico
          * 32 bits: 4 bytes per pixel [ B | G | R | ALPHA ].
          **/
         $offset = 0;
-        $binary=$metadata['data'];
+        $binary = $metadata['data'];
 
         for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
             for ($j = 0; $j < $metadata['Width']; ++$j) {
                 //we translate the BGRA to aRGB ourselves, which is twice as fast
                 //as calling imagecolorallocatealpha
-                $alpha7 = ((~ord($binary[$offset+3])) & 0xff) >> 1;
+                $alpha7 = ((~ord($binary[$offset + 3])) & 0xff) >> 1;
                 if ($alpha7 < 127) {
                     $col = ($alpha7 << 24) |
-                        (ord($binary[$offset+2]) << 16) |
-                        (ord($binary[$offset+1]) << 8) |
+                        (ord($binary[$offset + 2]) << 16) |
+                        (ord($binary[$offset + 1]) << 8) |
                         (ord($binary[$offset]));
                     imagesetpixel($im, $j, $i, $col);
                 }
@@ -332,13 +340,13 @@ class Ico
          **/
         $offset = 0;
         $bitoffset = 0;
-        $binary=$metadata['data'];
+        $binary = $metadata['data'];
 
         for ($i = $metadata['Height'] - 1; $i >= 0; --$i) {
             for ($j = 0; $j < $metadata['Width']; ++$j) {
                 if ($maskBits[$bitoffset] == 0) {
                     //translate BGR to RGB
-                    $col = (ord($binary[$offset+2]) << 16) | (ord($binary[$offset+1]) << 8) | (ord($binary[$offset]));
+                    $col = (ord($binary[$offset + 2]) << 16) | (ord($binary[$offset + 1]) << 8) | (ord($binary[$offset]));
                     imagesetpixel($im, $j, $i, $col);
                 }
                 $offset += 3;
