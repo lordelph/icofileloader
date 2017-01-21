@@ -346,7 +346,9 @@ class Ico
             for ($j = 0; $j < $metadata['Width']; ++$j) {
                 if ($maskBits[$bitoffset] == 0) {
                     //translate BGR to RGB
-                    $col = (ord($binary[$offset + 2]) << 16) | (ord($binary[$offset + 1]) << 8) | (ord($binary[$offset]));
+                    $col = (ord($binary[$offset + 2]) << 16) |
+                        (ord($binary[$offset + 1]) << 8) |
+                        (ord($binary[$offset]));
                     imagesetpixel($im, $j, $i, $col);
                 }
                 $offset += 3;
