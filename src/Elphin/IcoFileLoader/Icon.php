@@ -33,15 +33,15 @@ class Icon implements \ArrayAccess, \Countable
 
     /**
      * Finds the highest quality image in the icon
-     * @return IconImage|null
+     * @return IconImage
      */
     public function findBest()
     {
         $bestBitCount = 0;
-        $bestWidth=0;
+        $bestWidth = 0;
         $best = null;
         foreach ($this->images as $image) {
-            if (($image->width > $bestWidth)  ||
+            if (($image->width > $bestWidth) ||
                 (($image->width == $bestWidth) && ($image->bitCount > $bestBitCount))
             ) {
                 $bestWidth = $image->width;

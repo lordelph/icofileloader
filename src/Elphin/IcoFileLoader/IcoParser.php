@@ -4,7 +4,7 @@ namespace Elphin\IcoFileLoader;
 
 /**
  * IcoParser provides the means to read an ico file and produce an Icon object
- * containing many IconImage objects
+ * containing an IconImage objects for each image in the ico file
  *
  * @package Elphin\IcoFileLoader
  */
@@ -50,7 +50,8 @@ class IcoParser implements ParserInterface
         $data = $this->parseIconDirEntries($icon, $data, $icondir['Count']);
 
         // Extract additional headers for each extracted ICONDIRENTRY
-        for ($i = 0; $i < count($icon); ++$i) {
+        $iconCount = count($icon);
+        for ($i = 0; $i < $iconCount; ++$i) {
             $signature = unpack('LFourCC', substr($data, $icon[$i]->fileOffset, 4));
             if ($signature['FourCC'] == 0x474e5089) {
                 $this->parsePng($icon[$i], $data);
@@ -62,6 +63,13 @@ class IcoParser implements ParserInterface
         return $icon;
     }
 
+    /**
+     * Parse the sequence of ICONDIRENTRY structures
+     * @param Icon $icon
+     * @param string $data
+     * @param integer $count
+     * @return string
+     */
     private function parseIconDirEntries(Icon $icon, $data, $count)
     {
         for ($i = 0; $i < $count; ++$i) {
@@ -89,6 +97,11 @@ class IcoParser implements ParserInterface
         return $data;
     }
 
+    /**
+     * Handle icon image which is PNG formatted
+     * @param IconImage $entry
+     * @param string $data
+     */
     private function parsePng(IconImage $entry, $data)
     {
         //a png icon contains a complete png image at the file offset
@@ -96,6 +109,11 @@ class IcoParser implements ParserInterface
         $entry->setPngFile($png);
     }
 
+    /**
+     * Handle icon image which is BMP formatted
+     * @param IconImage $entry
+     * @param string $data
+     */
     private function parseBmp(IconImage $entry, $data)
     {
         $bitmapInfoHeader = unpack(
@@ -113,14 +131,17 @@ class IcoParser implements ParserInterface
                 break;
             case 8:
             case 4:
-                $this->parsePaletteImageData($entry, $data);
-                break;
             case 1:
-                $this->parseMonoImageData($entry, $data);
+                $this->parsePaletteImageData($entry, $data);
                 break;
         }
     }
 
+    /**
+     * Parse an image which doesn't use a palette
+     * @param IconImage $entry
+     * @param string $data
+     */
     private function parseTrueColorImageData(IconImage $entry, $data)
     {
         $length = $entry->bmpHeaderWidth * $entry->bmpHeaderHeight * ($entry->bitCount / 8);
@@ -128,10 +149,13 @@ class IcoParser implements ParserInterface
         $entry->setBitmapData($bmpData);
     }
 
+    /**
+     * Parse an image which uses a limited palette of colours
+     * @param IconImage $entry
+     * @param string $data
+     */
     private function parsePaletteImageData(IconImage $entry, $data)
     {
-        //var_dump($entry->colorCount);
-
         $pal = substr($data, $entry->fileOffset + $entry->bmpHeaderSize, $entry->colorCount * 4);
         $idx = 0;
         for ($j = 0; $j < $entry->colorCount; ++$j) {
@@ -140,21 +164,6 @@ class IcoParser implements ParserInterface
         }
 
         $length = $entry->bmpHeaderWidth * $entry->bmpHeaderHeight * (1 + $entry->bitCount) / $entry->bitCount;
-        $bmpData = substr($data, $entry->fileOffset + $entry->bmpHeaderSize + $entry->colorCount * 4, $length);
-        $entry->setBitmapData($bmpData);
-    }
-
-    private function parseMonoImageData(IconImage $entry, $data)
-    {
-        $pal = substr($data, $entry->fileOffset + $entry->bmpHeaderSize, $entry->colorCount * 4);
-
-        $idx = 0;
-        for ($j = 0; $j < $entry->colorCount; ++$j) {
-            $entry->addToBmpPalette(ord($pal[$idx + 2]), ord($pal[$idx + 1]), ord($pal[$idx]), ord($pal[$idx + 3]));
-            $idx += 4;
-        }
-
-        $length = $entry->bmpHeaderWidth * $entry->bmpHeaderHeight / 8;
         $bmpData = substr($data, $entry->fileOffset + $entry->bmpHeaderSize + $entry->colorCount * 4, $length);
         $entry->setBitmapData($bmpData);
     }

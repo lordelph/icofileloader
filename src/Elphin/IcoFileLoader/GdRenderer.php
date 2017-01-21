@@ -125,7 +125,10 @@ class GdRenderer implements RendererInterface
             return $c;
         }
 
+        //we don't use this for calculating 32bit color values
+        //@codeCoverageIgnoreStart
         return imagecolorallocatealpha($gd, $red, $green, $blue, $alpha);
+        //@codeCoverageIgnoreEnd
     }
 
     protected function parseHexColor($hexCol)

@@ -9,6 +9,7 @@ class GdRendererTest extends IcoTestCase
             ['32bit-16px-32px-sample.ico', 1, '32x32 pixel BMP @ 32 bits/pixel', '32bit-32px-expected.png'],
             ['24bit-32px-sample.ico', 0, '32x32 pixel BMP @ 24 bits/pixel', '24bit-32px-expected.png'],
             ['8bit-48px-32px-16px-sample.ico', 2, '32x32 pixel BMP @ 8 bits/pixel', '8bit-32px-expected.png'],
+            ['8bit-48px-32px-16px-sample.ico', 4, '48x48 pixel BMP @ 8 bits/pixel', '8bit-48px-expected.png'],
             ['4bit-32px-16px-sample.ico', 0, '32x32 pixel BMP @ 4 bits/pixel', '4bit-32px-expected.png'],
             ['1bit-32px-sample.ico', 0, '32x32 pixel BMP @ 1 bits/pixel', '1bit-32px-expected.png']
         ];
@@ -43,5 +44,15 @@ class GdRendererTest extends IcoTestCase
         //and let's try it on a green background
         $im=$renderer->render($icon[11], ['background'=>'#00ff00']);
         $this->assertImageLooksLike('32bit-png-green-expected.png', $im);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testInvalidBackground()
+    {
+        $renderer=new GdRenderer;
+        $icon=$this->parseIcon('32bit-png-sample.ico');
+        $renderer->render($icon[11], ['background'=>'this is garbage']);
     }
 }
