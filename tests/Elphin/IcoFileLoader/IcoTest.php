@@ -1,9 +1,7 @@
 <?php
-namespace Elphin\IcoFileLoader\Test;
+namespace Elphin\IcoFileLoader;
 
-use Elphin\IcoFileLoader\Ico;
-
-class IcoTest extends \PHPUnit_Framework_TestCase
+class IcoTest extends IcoTestCase
 {
     public function test32bitIcon()
     {
@@ -181,32 +179,5 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($h, $info['Height'], "Unexpected height for icon $idx");
         $this->assertEquals($c, $info['ColorCount'], "Unexpected colour count for icon $idx");
         $this->assertEquals($b, $info['BitCount'], "Unexpected bit depth for icon $idx");
-    }
-
-    private function assertImageLooksLike($expected, $im)
-    {
-        $this->assertInternalType('resource', $im);
-
-        $expectedFile = './tests/assets/' . $expected;
-        //can regenerate expected results by deleting and re-running test
-        if (!file_exists($expectedFile)) {
-            imagepng($im, $expectedFile, 0);
-            $this->markTestSkipped('Regenerated $expected  - skipping test');
-        }
-
-        //save icon as PNG with no compression
-        ob_start();
-        imagepng($im, null, 0);
-        $imageData = ob_get_contents();
-        ob_end_clean();
-
-        //it's possible this might break if the gd results change anything in their png encoding
-        //but that should be rare - the aim here to catch everyday problems in library maintenance
-        $expectedData = file_get_contents('./tests/assets/' . $expected);
-        if ($expectedData !== $imageData) {
-            $observedFile=str_replace('.png', '-OBSERVED.png', $expectedFile);
-            file_put_contents($observedFile, $imageData);
-        }
-        $this->assertTrue($expectedData === $imageData, 'generated image did not match expected ' . $expected);
     }
 }
