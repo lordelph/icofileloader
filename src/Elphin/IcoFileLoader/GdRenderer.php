@@ -37,6 +37,7 @@ class GdRenderer implements RendererInterface
 
     protected function resize($gd, $w, $h)
     {
+        //TODO - imagescale not available in hhvm it seems
         $resized = imagescale($gd, $w, $h, IMG_BICUBIC_FIXED);
         imagedestroy($gd);
         return $resized;
