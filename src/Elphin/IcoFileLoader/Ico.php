@@ -88,6 +88,13 @@ class Ico
                 substr($data, $this->iconDirEntry[$i]['FileOffset'])
             );
 
+            if ($bitmapInfoHeader['Size'] == 0x474e5089) {
+                //a png icon contains a complete png image
+                $this->iconDirEntry[$i]['png'] =
+                    substr($data, $this->iconDirEntry[$i]['FileOffset'], $this->iconDirEntry[$i]['SizeInBytes']);
+                continue;
+            }
+
             $this->iconDirEntry[$i]['header'] = $bitmapInfoHeader;
             $this->iconDirEntry[$i]['colors'] = [];
             $this->iconDirEntry[$i]['BitCount'] = $this->iconDirEntry[$i]['header']['BitCount'];
@@ -188,6 +195,12 @@ class Ico
             if ($icodata['ColorCount'] == 0) {
                 $icodata['ColorCount'] = 256;
             }
+            if ($icodata['Width'] == 0) {
+                $icodata['Width'] = 256;
+            }
+            if ($icodata['Height'] == 0) {
+                $icodata['Height'] = 256;
+            }
             $this->iconDirEntry[] = $icodata;
 
             $data = substr($data, 16);
@@ -268,6 +281,21 @@ class Ico
             return false;
         }
 
+        if (isset($this->iconDirEntry[$index]['png'])) {
+            return $this->getPngImage($index);
+        } else {
+            return $this->getBmpImage($index);
+        }
+    }
+
+    private function getPngImage($index)
+    {
+        $im = imagecreatefromstring($this->iconDirEntry[$index]['png']);
+        return $im;
+    }
+
+    private function getBmpImage($index)
+    {
         // create image filled with desired background color
         $im = imagecreatetruecolor($this->iconDirEntry[$index]['Width'], $this->iconDirEntry[$index]['Height']);
         $bgcolor = $this->allocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2]);
