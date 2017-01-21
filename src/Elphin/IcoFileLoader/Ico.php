@@ -45,17 +45,7 @@ class Ico
     public function loadFile($path)
     {
         $this->filename = $path;
-        if (($fp = @fopen($path, 'rb')) !== false) {
-            $data = '';
-            while (!feof($fp)) {
-                $data .= fread($fp, 4096);
-            }
-            fclose($fp);
-
-            return $this->loadData($data);
-        }
-
-        return false;
+        return $this->loadData(file_get_contents($path));
     }
 
     /**
@@ -67,7 +57,7 @@ class Ico
      *
      * @return bool Success
      */
-    private function loadData($data)
+    public function loadData($data)
     {
         $this->iconDirEntry = [];
 
@@ -79,38 +69,78 @@ class Ico
         //extract ICONDIRENTRY structures
         $data = $this->extractIconDirEntries($data);
 
-        // Extract additional headers for each extracted icon header
+        // Extract additional headers for each extracted ICONDIRENTRY
         $iconCount = count($this->iconDirEntry);
         for ($i = 0; $i < $iconCount; ++$i) {
-            $bitmapInfoHeader = unpack(
-                'LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/' .
-                'LXpixelsPerM/LYpixelsPerM/LColorsUsed/LColorsImportant',
-                substr($data, $this->iconDirEntry[$i]['FileOffset'])
-            );
+            $signature = unpack('LFourCC', substr($data, $this->iconDirEntry[$i]['FileOffset'], 4));
 
-            $this->iconDirEntry[$i]['header'] = $bitmapInfoHeader;
-            $this->iconDirEntry[$i]['colors'] = [];
-            $this->iconDirEntry[$i]['BitCount'] = $this->iconDirEntry[$i]['header']['BitCount'];
-
-            switch ($this->iconDirEntry[$i]['BitCount']) {
-                case 32:
-                case 24:
-                    $this->extract24BitData($i, $data);
-                    break;
-                case 8:
-                case 4:
-                    $this->extract8BitData($i, $data);
-                    break;
-                case 1:
-                    $this->extract1BitData($i, $data);
-                    break;
+            if ($signature['FourCC'] == 0x474e5089) {
+                $this->extractPng($i, $data);
+            } else {
+                $this->extractBmp($i, $data);
             }
-            $this->iconDirEntry[$i]['data_length'] = strlen($this->iconDirEntry[$i]['data']);
         }
         return true;
     }
 
-    private function extract24BitData($i, $data)
+    private function extractIconDirEntries($data)
+    {
+        for ($i = 0; $i < $this->ico['Count']; ++$i) {
+            $icodata = unpack('CWidth/CHeight/CColorCount/CReserved/SPlanes/SBitCount/LSizeInBytes/LFileOffset', $data);
+            $icodata['FileOffset'] -= ($this->ico['Count'] * 16) + 6;
+            if ($icodata['ColorCount'] == 0) {
+                $icodata['ColorCount'] = 256;
+            }
+            if ($icodata['Width'] == 0) {
+                $icodata['Width'] = 256;
+            }
+            if ($icodata['Height'] == 0) {
+                $icodata['Height'] = 256;
+            }
+            $this->iconDirEntry[] = $icodata;
+
+            $data = substr($data, 16);
+        }
+
+        return $data;
+    }
+
+    private function extractPng($i, $data)
+    {
+        //a png icon contains a complete png image at the file offset
+        $this->iconDirEntry[$i]['png'] =
+            substr($data, $this->iconDirEntry[$i]['FileOffset'], $this->iconDirEntry[$i]['SizeInBytes']);
+    }
+
+    private function extractBmp($i, $data)
+    {
+        $bitmapInfoHeader = unpack(
+            'LSize/LWidth/LHeight/SPlanes/SBitCount/LCompression/LImageSize/' .
+            'LXpixelsPerM/LYpixelsPerM/LColorsUsed/LColorsImportant',
+            substr($data, $this->iconDirEntry[$i]['FileOffset'])
+        );
+
+        $this->iconDirEntry[$i]['header'] = $bitmapInfoHeader;
+        $this->iconDirEntry[$i]['colors'] = [];
+        $this->iconDirEntry[$i]['BitCount'] = $this->iconDirEntry[$i]['header']['BitCount'];
+
+        switch ($this->iconDirEntry[$i]['BitCount']) {
+            case 32:
+            case 24:
+                $this->extractTrueColorImageData($i, $data);
+                break;
+            case 8:
+            case 4:
+                $this->extractPaletteImageData($i, $data);
+                break;
+            case 1:
+                $this->extractMonoImageData($i, $data);
+                break;
+        }
+        $this->iconDirEntry[$i]['data_length'] = strlen($this->iconDirEntry[$i]['data']);
+    }
+
+    private function extractTrueColorImageData($i, $data)
     {
         $length = $this->iconDirEntry[$i]['header']['Width'] *
             $this->iconDirEntry[$i]['header']['Height'] *
@@ -122,7 +152,7 @@ class Ico
         );
     }
 
-    private function extract8BitData($i, $data)
+    private function extractPaletteImageData($i, $data)
     {
         $icodata = substr(
             $data,
@@ -151,7 +181,7 @@ class Ico
         );
     }
 
-    private function extract1BitData($i, $data)
+    private function extractMonoImageData($i, $data)
     {
         $icodata = substr(
             $data,
@@ -178,22 +208,6 @@ class Ico
             $this->iconDirEntry[$i]['FileOffset'] + $this->iconDirEntry[$i]['header']['Size'] + 8,
             $length
         );
-    }
-
-    private function extractIconDirEntries($data)
-    {
-        for ($i = 0; $i < $this->ico['Count']; ++$i) {
-            $icodata = unpack('CWidth/CHeight/CColorCount/CReserved/SPlanes/SBitCount/LSizeInBytes/LFileOffset', $data);
-            $icodata['FileOffset'] -= ($this->ico['Count'] * 16) + 6;
-            if ($icodata['ColorCount'] == 0) {
-                $icodata['ColorCount'] = 256;
-            }
-            $this->iconDirEntry[] = $icodata;
-
-            $data = substr($data, 16);
-        }
-
-        return $data;
     }
 
     /**
@@ -268,20 +282,34 @@ class Ico
             return false;
         }
 
+        if (isset($this->iconDirEntry[$index]['png'])) {
+            return $this->getPngImage($index);
+        } else {
+            return $this->getBmpImage($index);
+        }
+    }
+
+    private function getPngImage($index)
+    {
+        $im = imagecreatefromstring($this->iconDirEntry[$index]['png']);
+        return $im;
+    }
+
+    private function getBmpImage($index)
+    {
         // create image filled with desired background color
-        $im = imagecreatetruecolor($this->iconDirEntry[$index]['Width'], $this->iconDirEntry[$index]['Height']);
-        $bgcolor = $this->allocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2]);
-        imagefilledrectangle(
-            $im,
-            0,
-            0,
-            $this->iconDirEntry[$index]['Width'],
-            $this->iconDirEntry[$index]['Height'],
-            $bgcolor
-        );
+        $w=$this->iconDirEntry[$index]['Width'];
+        $h=$this->iconDirEntry[$index]['Height'];
+        $im = imagecreatetruecolor($w, $h);
 
         if ($this->bgcolorTransparent) {
-            imagecolortransparent($im, $bgcolor);
+            imagealphablending($im, false);
+            $bgcolor=$this->allocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2], 127);
+            imagefilledrectangle($im, 0, 0, $w, $h, $bgcolor);
+            imagesavealpha($im, true);
+        } else {
+            $bgcolor = $this->allocateColor($im, $this->bgcolor[0], $this->bgcolor[1], $this->bgcolor[2]);
+            imagefilledrectangle($im, 0, 0, $w, $h, $bgcolor);
         }
 
         // now paint pixels based on bit count
@@ -304,6 +332,31 @@ class Ico
         }
 
         return $im;
+    }
+
+    /**
+     * Allocate a color on $im resource. This function prevents
+     * from allocating same colors on the same pallete. Instead
+     * if it finds that the color is already allocated, it only
+     * returns the index to that color.
+     * It supports alpha channel.
+     *
+     * @param resource $im Image resource
+     * @param int $red Red component
+     * @param int $green Green component
+     * @param int $blue Blue component
+     * @param int $alpha Alpha channel
+     *
+     * @return int Color index
+     */
+    private function allocateColor($im, $red, $green, $blue, $alpha = 0)
+    {
+        $c = imagecolorexactalpha($im, $red, $green, $blue, $alpha);
+        if ($c >= 0) {
+            return $c;
+        }
+
+        return imagecolorallocatealpha($im, $red, $green, $blue, $alpha);
     }
 
     private function render32bit($metadata, $im)
@@ -357,6 +410,31 @@ class Ico
         }
     }
 
+    private function buildMaskBits($metadata)
+    {
+        $width = $metadata['Width'];
+        if (($width % 32) > 0) {
+            $width += (32 - ($metadata['Width'] % 32));
+        }
+        $offset = $metadata['Width'] *
+            $metadata['Height'] *
+            $metadata['BitCount'] / 8;
+        $total_bytes = ($width * $metadata['Height']) / 8;
+        $maskBits = '';
+        $bytes = 0;
+        $bytes_per_line = ($metadata['Width'] / 8);
+        $bytes_to_remove = (($width - $metadata['Width']) / 8);
+        for ($i = 0; $i < $total_bytes; ++$i) {
+            $maskBits .= str_pad(decbin(ord($metadata['data'][$offset + $i])), 8, '0', STR_PAD_LEFT);
+            ++$bytes;
+            if ($bytes == $bytes_per_line) {
+                $i += $bytes_to_remove;
+                $bytes = 0;
+            }
+        }
+        return $maskBits;
+    }
+
     private function render8bit($metadata, $im)
     {
         $palette = $this->buildPalette($metadata, $im);
@@ -375,6 +453,24 @@ class Ico
                 ++$offset;
             }
         }
+    }
+
+    private function buildPalette($metadata, $im)
+    {
+        $palette = [];
+        if ($metadata['BitCount'] != 24) {
+            $palette = [];
+            for ($i = 0; $i < $metadata['ColorCount']; ++$i) {
+                $palette[$i] = $this->allocateColor(
+                    $im,
+                    $metadata['colors'][$i]['red'],
+                    $metadata['colors'][$i]['green'],
+                    $metadata['colors'][$i]['blue'],
+                    round($metadata['colors'][$i]['reserved'] / 255 * 127)
+                );
+            }
+        }
+        return $palette;
     }
 
     private function render4bit($metadata, $im)
@@ -428,73 +524,5 @@ class Ico
                 ++$offset;
             }
         }
-    }
-
-    private function buildPalette($metadata, $im)
-    {
-        $palette = [];
-        if ($metadata['BitCount'] != 24) {
-            $palette = [];
-            for ($i = 0; $i < $metadata['ColorCount']; ++$i) {
-                $palette[$i] = $this->allocateColor(
-                    $im,
-                    $metadata['colors'][$i]['red'],
-                    $metadata['colors'][$i]['green'],
-                    $metadata['colors'][$i]['blue'],
-                    round($metadata['colors'][$i]['reserved'] / 255 * 127)
-                );
-            }
-        }
-        return $palette;
-    }
-
-    private function buildMaskBits($metadata)
-    {
-        $width = $metadata['Width'];
-        if (($width % 32) > 0) {
-            $width += (32 - ($metadata['Width'] % 32));
-        }
-        $offset = $metadata['Width'] *
-            $metadata['Height'] *
-            $metadata['BitCount'] / 8;
-        $total_bytes = ($width * $metadata['Height']) / 8;
-        $maskBits = '';
-        $bytes = 0;
-        $bytes_per_line = ($metadata['Width'] / 8);
-        $bytes_to_remove = (($width - $metadata['Width']) / 8);
-        for ($i = 0; $i < $total_bytes; ++$i) {
-            $maskBits .= str_pad(decbin(ord($metadata['data'][$offset + $i])), 8, '0', STR_PAD_LEFT);
-            ++$bytes;
-            if ($bytes == $bytes_per_line) {
-                $i += $bytes_to_remove;
-                $bytes = 0;
-            }
-        }
-        return $maskBits;
-    }
-
-    /**
-     * Allocate a color on $im resource. This function prevents
-     * from allocating same colors on the same pallete. Instead
-     * if it finds that the color is already allocated, it only
-     * returns the index to that color.
-     * It supports alpha channel.
-     *
-     * @param resource $im Image resource
-     * @param int $red Red component
-     * @param int $green Green component
-     * @param int $blue Blue component
-     * @param int $alpha Alpha channel
-     *
-     * @return int Color index
-     */
-    private function allocateColor(&$im, $red, $green, $blue, $alpha = 0)
-    {
-        $c = imagecolorexactalpha($im, $red, $green, $blue, $alpha);
-        if ($c >= 0) {
-            return $c;
-        }
-
-        return imagecolorallocatealpha($im, $red, $green, $blue, $alpha);
     }
 }

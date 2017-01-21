@@ -87,6 +87,28 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $this->assertImageLooksLike('1bit-32px-expected.png', $im);
     }
 
+    public function testPngIcon()
+    {
+        $ico = new Ico('./tests/assets/32bit-png-sample.ico');
+        $this->assertEquals(12, $ico->getTotalIcons());
+        $this->assertIconMetadata($ico, 0, 16, 16, 16, 4);
+        $this->assertIconMetadata($ico, 1, 16, 16, 256, 8);
+        $this->assertIconMetadata($ico, 2, 32, 32, 16, 4);
+        $this->assertIconMetadata($ico, 3, 32, 32, 256, 8);
+        $this->assertIconMetadata($ico, 4, 48, 48, 16, 4);
+        $this->assertIconMetadata($ico, 5, 48, 48, 256, 8);
+        $this->assertIconMetadata($ico, 6, 256, 256, 16, 4);
+        $this->assertIconMetadata($ico, 7, 256, 256, 256, 8);
+        $this->assertIconMetadata($ico, 8, 16, 16, 256, 32);
+        $this->assertIconMetadata($ico, 9, 32, 32, 256, 32);
+        $this->assertIconMetadata($ico, 10, 48, 48, 256, 32);
+        $this->assertIconMetadata($ico, 11, 256, 256, 256, 32);
+
+        $ico->setBackgroundTransparent(true);
+        $im = $ico->getImage(9);
+        $this->assertImageLooksLike('32bit-png-expected.png', $im);
+    }
+
     //most of our tests have used a green background, but this tests we can generate
     //an image with an alpha channel successfully
     public function testTransparency()
@@ -100,6 +122,26 @@ class IcoTest extends \PHPUnit_Framework_TestCase
 
         //save icon as PNG with no compression
         $this->assertImageLooksLike('32bit-32px-alpha-expected.png', $im);
+    }
+
+    //most of our tests have used a green background, but this tests we can generate
+    //an image with an alpha channel successfully
+    public function testBackgroundColor()
+    {
+        //with this particular 8 bit image, the image contains the colour white
+        //in both the masked transparent area and the icon itself. If we ask for a transparent
+        //icon and set the the background as white, we should NOT get transparent
+        //pixels in the opaque are of the mask. That's what we're testing here!
+        $ico = new Ico('./tests/assets/32bit-png-sample.ico');
+        $this->assertIconMetadata($ico, 3, 32, 32, 256, 8);
+
+        $ico->setBackgroundTransparent(true);
+        $ico->setBackground('#ffffff');
+        $im = $ico->getImage(3);
+
+
+        //this sample has got white pixels in the downward arrow as we expect
+        $this->assertImageLooksLike('32bit-bgtest-expected.png', $im);
     }
 
 
@@ -130,9 +172,10 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayHasKey('BitCount', $info);
         $this->assertArrayHasKey('SizeInBytes', $info);
         $this->assertArrayHasKey('FileOffset', $info);
-        $this->assertArrayHasKey('header', $info);
-        $this->assertArrayHasKey('colors', $info);
-
+        if (!isset($info['png'])) {
+            $this->assertArrayHasKey('header', $info);
+            $this->assertArrayHasKey('colors', $info);
+        }
         //check image is of form expected
         $this->assertEquals($w, $info['Width'], "Unexpected width for icon $idx");
         $this->assertEquals($h, $info['Height'], "Unexpected height for icon $idx");
@@ -160,6 +203,10 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         //it's possible this might break if the gd results change anything in their png encoding
         //but that should be rare - the aim here to catch everyday problems in library maintenance
         $expectedData = file_get_contents('./tests/assets/' . $expected);
+        if ($expectedData !== $imageData) {
+            $observedFile=str_replace('.png', '-OBSERVED.png', $expectedFile);
+            file_put_contents($observedFile, $imageData);
+        }
         $this->assertTrue($expectedData === $imageData, 'generated image did not match expected ' . $expected);
     }
 }
