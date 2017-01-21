@@ -124,6 +124,26 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         $this->assertImageLooksLike('32bit-32px-alpha-expected.png', $im);
     }
 
+    //most of our tests have used a green background, but this tests we can generate
+    //an image with an alpha channel successfully
+    public function testBackgroundColor()
+    {
+        //with this particular 8 bit image, the image contains the colour white
+        //in both the masked transparent area and the icon itself. If we ask for a transparent
+        //icon and set the the background as white, we should NOT get transparent
+        //pixels in the opaque are of the mask. That's what we're testing here!
+        $ico = new Ico('./tests/assets/32bit-png-sample.ico');
+        $this->assertIconMetadata($ico, 3, 32, 32, 256, 8);
+
+        $ico->setBackgroundTransparent(true);
+        $ico->setBackground('#ffffff');
+        $im = $ico->getImage(3);
+
+
+        //this sample has got white pixels in the downward arrow as we expect
+        $this->assertImageLooksLike('32bit-bgtest-expected.png', $im);
+    }
+
 
     /**
      * useful during test development, this can spit out some assertions for regression tests
@@ -183,6 +203,10 @@ class IcoTest extends \PHPUnit_Framework_TestCase
         //it's possible this might break if the gd results change anything in their png encoding
         //but that should be rare - the aim here to catch everyday problems in library maintenance
         $expectedData = file_get_contents('./tests/assets/' . $expected);
+        if ($expectedData !== $imageData) {
+            $observedFile=str_replace('.png', '-OBSERVED.png', $expectedFile);
+            file_put_contents($observedFile, $imageData);
+        }
         $this->assertTrue($expectedData === $imageData, 'generated image did not match expected ' . $expected);
     }
 }

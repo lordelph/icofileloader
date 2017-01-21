@@ -5,6 +5,19 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
+## 0.0.3 - 2017-01-21
+
+### Added
+- support for icons containing PNG files
+
+### Change
+- performance and code structure improvements
+
+### Fixed
+- fixed issue where requested background colour was made transparent 
+  even in opaque pixels which used the same colour
+
+
 ## 0.0.2 - 2017-01-20
 
 ### Change
