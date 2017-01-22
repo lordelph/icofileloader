@@ -97,6 +97,11 @@ foreach ($icon as $idx=>$image) {
      printf("rendered %s as %s\n", $icon->getDescription(), $filename);
 }
 ```
+## Testing
+
+``` bash
+$ composer test
+```
 
 ## Contributing
 
