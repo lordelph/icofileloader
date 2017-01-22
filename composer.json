@@ -1,8 +1,8 @@
 {
     "name": "lordelph/icofileloader",
-    "description": "PHP package for reading .ico files, particularly website favicons",
+    "description": "PHP package for reading and converting .ico files, particularly website favicons",
     "keywords": ["ico", "icon", "favicon", "extract", "load", "convert"],
-    "homepage": "https://github.com/lordelph/icofileloader",
+    "homepage": "http://icofileloader.dixo.net/",
     "license": "MIT",
     "authors": [
         {
