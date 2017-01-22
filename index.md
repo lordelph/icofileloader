@@ -1,3 +1,6 @@
+![Elphin IcoFileLoader logo](img/logo.png)
+
+
 Elphin IcoFileLoader
 ====================
 [![Software License][ico-license]](LICENSE.md)
