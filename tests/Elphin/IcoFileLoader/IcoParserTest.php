@@ -16,6 +16,7 @@ class IcoParserTest extends IcoTestCase
         //and away we go...
         $icon = $parser->parse($data);
         $this->assertInstanceOf(Icon::class, $icon);
+        $this->assertTrue($icon[0]->isBmp());
 
         //we expect 2 images in this sample
         $this->assertEquals(2, count($icon));

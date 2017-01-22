@@ -110,10 +110,13 @@ class IconImage
 
     public function setBitmapInfoHeader($bmpInfo)
     {
-        if ($this->bitCount!=$bmpInfo['BitCount']) {
+        //@codeCoverageIgnoreStart
+        if ($this->bitCount != $bmpInfo['BitCount']) {
             //the original code updated the ICONDIRENTRY with this, but it doesn't seem necessary...
-            throw new \Exception("bit count changed from ".$this->bitCount. " to ".$bmpInfo['BitCount']);
+            throw new \Exception("bit count changed from " . $this->bitCount . " to " . $bmpInfo['BitCount']);
         }
+        //@codeCoverageIgnoreEnd
+
         //we need this to calculate offsets when rendering
         $this->bmpHeaderWidth = $bmpInfo['Width'];
         $this->bmpHeaderHeight = $bmpInfo['Height'];
