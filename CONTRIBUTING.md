@@ -7,7 +7,10 @@ We accept contributions via Pull Requests on [Github](https://github.com/lordelp
 
 ## Pull Requests
 
-- **[PSR-2 Coding Standard](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md)** - The easiest way to apply the conventions is to install [PHP Code Sniffer](http://pear.php.net/package/PHP_CodeSniffer).
+- **[PSR-2 Coding Standard](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md)** - 
+  The developer dependencies includes [phpcs](http://pear.php.net/package/PHP_CodeSniffer) so
+  it is very easy ensure compliance. Simply run `composer check-style` . Most issues 
+  aside from long lines can be fixed with `composer fix-style`
 
 - **Add tests!** - Your patch won't be accepted if it doesn't have tests.
 
@@ -25,7 +28,7 @@ We accept contributions via Pull Requests on [Github](https://github.com/lordelp
 ## Running Tests
 
 ``` bash
-$ phpunit
+$ composer test
 ```
 
 
