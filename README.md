@@ -112,10 +112,9 @@ The service is composed of a [parser][class-parser] and a [renderer][class-rende
 which can be injected into the service at runtime if you wanted to override them.
 
 The current [GdRenderer][class-renderer] works by drawing individual pixels for BMP
-based icon images. This isn't going to be terribly fast. It may be possible to 
-replace this with an alternative implementation which fools gd into rendering the
-BMP directly.
-
+based icon images. This isn't going to be terribly fast. PHP 7.2 will have support
+for [BMP images](http://php.net/imagecreatefrombmp), and I'll add a renderer which 
+takes advantage of that when it is released.
 
 
 ## Testing
