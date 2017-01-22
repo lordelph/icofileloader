@@ -54,4 +54,18 @@ class IcoFileServiceTest extends IcoTestCase
         $service = new IcoFileService;
         $service->fromFile("not a file");
     }
+
+    public function testIterateExample()
+    {
+        $service = new IcoFileService;
+        $icon = $service->fromFile('./tests/assets/32bit-16px-32px-sample.ico');
+
+        $count=0;
+        foreach ($icon as $image) {
+            $im=$service->renderImage($image);
+            $this->assertInternalType('resource', $im);
+            $count++;
+        }
+        $this->assertEquals(count($icon), $count);
+    }
 }

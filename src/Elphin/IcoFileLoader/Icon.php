@@ -5,12 +5,17 @@ namespace Elphin\IcoFileLoader;
 /**
  * An instance of icon holds the extracted data from a .ico file
  */
-class Icon implements \ArrayAccess, \Countable
+class Icon implements \ArrayAccess, \Countable, \Iterator
 {
     /**
      * @var IconImage[]
      */
     private $images = [];
+
+    /**
+     * @var int iterator position
+     */
+    private $position = 0;
 
     /**
      * Returns best icon image with dimensions matching w,h
@@ -111,5 +116,45 @@ class Icon implements \ArrayAccess, \Countable
     public function offsetGet($offset)
     {
         return isset($this->images[$offset]) ? $this->images[$offset] : null;
+    }
+
+    /**
+     * Implements \Iterator allowing foreach($icon as $image){}
+     */
+    public function rewind()
+    {
+        $this->position = 0;
+    }
+
+    /**
+     * Implements \Iterator allowing foreach($icon as $image){}
+     */
+    public function current()
+    {
+        return $this->images[$this->position];
+    }
+
+    /**
+     * Implements \Iterator allowing foreach($icon as $image){}
+     */
+    public function key()
+    {
+        return $this->position;
+    }
+
+    /**
+     * Implements \Iterator allowing foreach($icon as $image){}
+     */
+    public function next()
+    {
+        ++$this->position;
+    }
+
+    /**
+     * Implements \Iterator allowing foreach($icon as $image){}
+     */
+    public function valid()
+    {
+        return isset($this->images[$this->position]);
     }
 }
