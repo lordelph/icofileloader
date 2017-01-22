@@ -5,7 +5,7 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
-## 0.0.3 - tbc
+## 1.0.0-alpha - 2017-01-22
 
 ### Added
 - support for icons containing PNG files
