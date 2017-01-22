@@ -88,13 +88,13 @@ as individual files.
 
 ```php
 $icon = $loader->fromFile('/path/to/icon.ico');
-foreach ($icon as $idx=>$image) {
+foreach ($icon as $idx => $image) {
      $im=$loader->renderImage($image);
      
      $filename=sprintf('img%d-%dx%d.png', $idx, $image->width, $image->height);
      imagepng($im, $filename);
      
-     printf("rendered %s as %s\n", $icon->getDescription(), $filename);
+     printf("rendered %s as %s\n", $image->getDescription(), $filename);
 }
 ```
 ## Testing
