@@ -5,13 +5,14 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
-## 0.0.3 - 2017-01-21
+## 0.0.3 - tbc
 
 ### Added
 - support for icons containing PNG files
 
 ### Change
-- performance and code structure improvements
+- performance improvements
+- complete refactoring into smaller, separate classes
 
 ### Fixed
 - fixed issue where requested background colour was made transparent 

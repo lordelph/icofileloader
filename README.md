@@ -6,10 +6,77 @@ Elphin IcoFileLoader
 [![Quality Score][ico-code-quality]][link-code-quality]
 
 
-This class provides a means to load .ico files into a PHP application.
+This class provides a means to load .ico files into a PHP application. It has no 
+dependancies apart from gd for rendering.
 
-No stable release is available yet, significant refactoring is underway to modernize the 2005 original.
+The class has unit tests which verify support for 1bit, 4bit, 8bit, 24bit and 32bit
+.ico files, and the newer form of .ico files which can included embedded PNG files.
 
+## Installation
+
+IcoFileLoader is available via Composer:
+
+```
+composer require lordelph/icofileloader
+```
+
+## Quick start
+The `IcoFileService` class provides a one-shot method for extracting an icon of a particular
+size from a `.ico` file. Here's how you extract a 32x32 transparent image from an ico file:
+
+```
+$loader=new Elphin\IcoFileLoader\IcoFileService;
+$im = $loader->extractIcon('/page/to/icon.ico', 32, 32);
+```
+
+### Render with background color
+
+Instead of retaining the alpha channel from the icon, you can render with a background
+color instead - pass the required color as a renderer option as follows:
+
+```
+$loader=new Elphin\IcoFileLoader\IcoFileService;
+$im = $loader->extractIcon('/page/to/icon.ico', 32, 32, ['background'=>'#FFFFFF']);
+```
+
+### Extract icon at any size
+
+The `extractIcon` method will try find an image in the icon which is the exact
+size you request at highest color depth it can find. If it can't it will resize the
+best quality image in the icon. So, you can request any size you require...
+
+```
+$loader=new Elphin\IcoFileLoader\IcoFileService;
+$im = $loader->extractIcon('/page/to/icon.ico', 100, 100);
+```
+
+### Extract icon from a URL
+
+As long you have the PHP fopen wrappers installed, you can pass a URL to `extractIcon`
+
+```
+$loader=new Elphin\IcoFileLoader\IcoFileService;
+$im = $loader->extractIcon('https://assets-cdn.github.com/favicon.ico', 16, 16);
+```
+
+### Extract icon from binary data
+
+If you already have an ico file held as a binary string, `extractIcon` will cope with
+that just fine too:
+```
+$loader=new Elphin\IcoFileLoader\IcoFileService;
+$data=file_get_contents('/page/to/icon.ico');
+$im = $loader->extractIcon($data, 16, 16);
+```
+
+## Lower level methods
+
+The service is largely made up of a parser, which can provide an `Icon` instance representing
+an icon and the images it contains, and a renderer. The current renderer uses gd functions to 
+provide a true color image resource with an alpha channel.
+
+Lower level methods in the service and constituent classes let you load and inspect an 
+icon if your needs are more complex.
 
 
 ## Contributing
