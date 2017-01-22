@@ -6,10 +6,11 @@ Elphin IcoFileLoader
 [![Quality Score][ico-code-quality]][link-code-quality]
 
 
-This class provides a means to load .ico files into a PHP application. It has no 
-dependencies apart from [gd](http://php.net/manual/en/book.image.php) for rendering.
+This package provides a means to load and convert .ico files in a PHP application. 
+It has no dependencies apart from [gd](http://php.net/manual/en/book.image.php) 
+for rendering.
 
-The class has unit tests which verify support for 1bit, 4bit, 8bit, 24bit and 32bit
+The package has unit tests which verify support for 1bit, 4bit, 8bit, 24bit and 32bit
 .ico files, and the newer form of .ico files which can included embedded PNG files.
 
 ## Installation
@@ -21,8 +22,9 @@ composer require lordelph/icofileloader
 ```
 
 ## Usage
-The `IcoFileService` class provides a one-shot method `extractIcon`. This should suit
-most use-cases where you simply want to get one image out of a .ico file. 
+The [IcoFileService][class-icofileservice] class provides a one-shot method 
+`extractIcon`. This should suit most use-cases where you simply want to get one 
+image out of a .ico file. 
 
 It returns an image resource, which you can further manipulate with 
 [GD functions](http://php.net/gd), e.g. save it to a file with 
@@ -40,8 +42,8 @@ imagepng($im, '/path/to/output.png');
 
 ### Render with background color
 
-Instead of retaining the alpha channel from the icon, you can render with a background
-color instead - pass the required color as a renderer option as follows:
+Instead of retaining the alpha channel from the icon, you can render with a 
+background color instead - pass the required color as a renderer option as follows:
 
 ```php
 $im = $loader->extractIcon('/path/to/icon.ico', 32, 32, ['background'=>'#FFFFFF']);
@@ -59,7 +61,8 @@ $im = $loader->extractIcon('/path/to/icon.ico', 100, 100);
 
 ### Extract icon from a URL
 
-As long you have the PHP [fopen wrappers](http://php.net/manual/en/wrappers.php) installed, you can pass a URL to `extractIcon`
+As long you have the PHP [fopen wrappers](http://php.net/manual/en/wrappers.php) 
+installed, you can pass a URL to `extractIcon`
 
 ```php
 $im = $loader->extractIcon('https://assets-cdn.github.com/favicon.ico', 16, 16);
@@ -67,8 +70,8 @@ $im = $loader->extractIcon('https://assets-cdn.github.com/favicon.ico', 16, 16);
 
 ### Extract icon from binary data
 
-If you already have an ico file held as a binary string, `extractIcon` will cope with
-that just fine too:
+If you already have an ico file held as a binary string, `extractIcon` will cope 
+with that just fine too:
 ```php
 $data = file_get_contents('/path/to/icon.ico');
 $im = $loader->extractIcon($data, 16, 16);
@@ -77,11 +80,14 @@ $im = $loader->extractIcon($data, 16, 16);
 ## Lower level methods
 
 If you want to do more than just extract a single image from an icon, you can use 
-lower level methods to inspect an .ico file and perform multiple renderings.
+lower level methods of [IcoFileService][class-icofileservice] to inspect an .ico 
+file and perform multiple renderings.
 
-The service is largely made up of a parser, which can provide an `Icon` instance representing
-an icon and the images it contains, and a renderer. The current renderer uses gd functions to 
-provide a true color image resource with an alpha channel.
+The `fromFile`, `fromString` and `from` methods will parse an `ico` file and return
+an [Icon][class-icon] instance representing an icon and the [images][class-image] 
+it contains.
+ 
+You can iterate the images in icon, examine them, and render them with `renderImage`
 
 For example, here's how you could extract all the images in an icon and save them
 as individual files.
@@ -97,6 +103,19 @@ foreach ($icon as $idx => $image) {
      printf("rendered %s as %s\n", $image->getDescription(), $filename);
 }
 ```
+
+## Internals
+
+The service is composed of a [parser][class-parser] and a [renderer][class-renderer],
+which can be injected into the service at runtime if you wanted to override them.
+
+The current [GdRenderer][class-renderer] works by drawing individual pixels for BMP
+based icon images. This isn't going to be terribly fast. It may be possible to 
+replace this with an alternative implementation which fools gd into rendering the
+BMP directly.
+
+
+
 ## Testing
 
 ``` bash
@@ -122,6 +141,12 @@ The MIT License (MIT). Please see [License File](https://github.com/lordelph/ico
 *Note: this was based on some classes originally written in 2005 by [Diogo Resende](https://www.phpclasses.org/package/2369-PHP-Extract-graphics-from-ico-files-into-PNG-images.html). 
 While these were originally provided on the PHPClasses site under a GPL license,
 Diogo kindly agreed to allow them to be licensed under an MIT license.*
+
+[class-icofileservice]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/IcoFileService.php
+[class-icon]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/Icon.php
+[class-image]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/IconImage.php
+[class-parser]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/IcoParser.php
+[class-renderer]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/GdRenderer.php
 
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
 [ico-travis]: https://img.shields.io/travis/lordelph/icofileloader/master.svg?style=flat-square
