@@ -1,6 +1,3 @@
-![Elphin IcoFileLoader logo](img/logo.png)
-
-
 Elphin IcoFileLoader
 ====================
 [![Software License][ico-license]](LICENSE.md)
@@ -9,7 +6,8 @@ Elphin IcoFileLoader
 [![Quality Score][ico-code-quality]][link-code-quality]
 
 
-This package provides a means to load and convert .ico files in a PHP application.
+<img src="img/logo.png" width="284" height="256" align="right">This package provides a means to load and 
+convert .ico files in a PHP application.
 It has no dependencies apart from [gd](http://php.net/manual/en/book.image.php)
 for rendering.
 
