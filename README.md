@@ -7,7 +7,7 @@ Elphin IcoFileLoader
 
 
 This class provides a means to load .ico files into a PHP application. It has no 
-dependancies apart from gd for rendering.
+dependencies apart from [gd](http://php.net/manual/en/book.image.php) for rendering.
 
 The class has unit tests which verify support for 1bit, 4bit, 8bit, 24bit and 32bit
 .ico files, and the newer form of .ico files which can included embedded PNG files.
@@ -16,17 +16,26 @@ The class has unit tests which verify support for 1bit, 4bit, 8bit, 24bit and 32
 
 IcoFileLoader is available via Composer:
 
-```
+```bash
 composer require lordelph/icofileloader
 ```
 
-## Quick start
-The `IcoFileService` class provides a one-shot method for extracting an icon of a particular
-size from a `.ico` file. Here's how you extract a 32x32 transparent image from an ico file:
+## Usage
+The `IcoFileService` class provides a one-shot method `extractIcon`. This should suit
+most use-cases where you simply want to get one image out of a .ico file. 
 
-```
-$loader=new Elphin\IcoFileLoader\IcoFileService;
-$im = $loader->extractIcon('/page/to/icon.ico', 32, 32);
+It returns an image resource, which you can further manipulate with 
+[GD functions](http://php.net/gd), e.g. save it to a file with 
+[imagepng](http://php.net/imagepng)
+
+For example, here's how you extract a 32x32 transparent image from an ico file:
+
+```php
+$loader = new Elphin\IcoFileLoader\IcoFileService;
+$im = $loader->extractIcon('/path/to/icon.ico', 32, 32);
+
+//$im is a GD image resource, so we could, for example, save this as a PNG
+imagepng($im, '/path/to/output.png');
 ```
 
 ### Render with background color
@@ -34,28 +43,25 @@ $im = $loader->extractIcon('/page/to/icon.ico', 32, 32);
 Instead of retaining the alpha channel from the icon, you can render with a background
 color instead - pass the required color as a renderer option as follows:
 
-```
-$loader=new Elphin\IcoFileLoader\IcoFileService;
-$im = $loader->extractIcon('/page/to/icon.ico', 32, 32, ['background'=>'#FFFFFF']);
+```php
+$im = $loader->extractIcon('/path/to/icon.ico', 32, 32, ['background'=>'#FFFFFF']);
 ```
 
 ### Extract icon at any size
 
 The `extractIcon` method will try find an image in the icon which is the exact
-size you request at highest color depth it can find. If it can't it will resize the
+size you request at highest color depth it can find. If it can't, it will resize the
 best quality image in the icon. So, you can request any size you require...
 
-```
-$loader=new Elphin\IcoFileLoader\IcoFileService;
-$im = $loader->extractIcon('/page/to/icon.ico', 100, 100);
+```php
+$im = $loader->extractIcon('/path/to/icon.ico', 100, 100);
 ```
 
 ### Extract icon from a URL
 
-As long you have the PHP fopen wrappers installed, you can pass a URL to `extractIcon`
+As long you have the PHP [fopen wrappers](http://php.net/manual/en/wrappers.php) installed, you can pass a URL to `extractIcon`
 
-```
-$loader=new Elphin\IcoFileLoader\IcoFileService;
+```php
 $im = $loader->extractIcon('https://assets-cdn.github.com/favicon.ico', 16, 16);
 ```
 
@@ -63,21 +69,34 @@ $im = $loader->extractIcon('https://assets-cdn.github.com/favicon.ico', 16, 16);
 
 If you already have an ico file held as a binary string, `extractIcon` will cope with
 that just fine too:
-```
-$loader=new Elphin\IcoFileLoader\IcoFileService;
-$data=file_get_contents('/page/to/icon.ico');
+```php
+$data = file_get_contents('/path/to/icon.ico');
 $im = $loader->extractIcon($data, 16, 16);
 ```
 
 ## Lower level methods
 
+If you want to do more than just extract a single image from an icon, you can use 
+lower level methods to inspect an .ico file and perform multiple renderings.
+
 The service is largely made up of a parser, which can provide an `Icon` instance representing
 an icon and the images it contains, and a renderer. The current renderer uses gd functions to 
 provide a true color image resource with an alpha channel.
 
-Lower level methods in the service and constituent classes let you load and inspect an 
-icon if your needs are more complex.
+For example, here's how you could extract all the images in an icon and save them
+as individual files.
 
+```php
+$icon = $loader->fromFile('/path/to/icon.ico');
+foreach ($icon as $idx=>$image) {
+     $im=$loader->renderImage($image);
+     
+     $filename=sprintf('img%d-%dx%d.png', $idx, $image->width, $image->height);
+     imagepng($im, $filename);
+     
+     printf("rendered %s as %s\n", $icon->getDescription(), $filename);
+}
+```
 
 ## Contributing
 
@@ -93,7 +112,7 @@ Thanks also to the [PHP League's skeleton project](https://github.com/thephpleag
 
 ## License
 
-The MIT License (MIT). Please see [License File](https://github.com/thephpleague/color-extractor/blob/master/LICENSE) for more information.
+The MIT License (MIT). Please see [License File](https://github.com/lordelph/icofileloader/blob/master/LICENCE) for more information.
 
 *Note: this was based on some classes originally written in 2005 by [Diogo Resende](https://www.phpclasses.org/package/2369-PHP-Extract-graphics-from-ico-files-into-PNG-images.html). 
 While these were originally provided on the PHPClasses site under a GPL license,
