@@ -110,11 +110,11 @@ class GdRenderer implements RendererInterface
      * returns the index to that color.
      * It supports alpha channel.
      *
-     * @param resource $gd gd image resource
-     * @param int $red Red component
-     * @param int $green Green component
-     * @param int $blue Blue component
-     * @param int $alpha Alpha channel
+     * @param resource $gd    gd image resource
+     * @param int      $red   Red component
+     * @param int      $green Green component
+     * @param int      $blue  Blue component
+     * @param int      $alpha Alpha channel
      *
      * @return int Color index
      */

@@ -70,7 +70,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
     /**
      * Set an icon
      * This is an implementation of ArrayAccess allowing you to do $icon[$x]=$image
-     * @param integer $offset
+     * @param integer   $offset
      * @param IconImage $value
      */
     public function offsetSet($offset, $value)

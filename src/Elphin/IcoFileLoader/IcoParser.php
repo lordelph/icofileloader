@@ -65,8 +65,8 @@ class IcoParser implements ParserInterface
 
     /**
      * Parse the sequence of ICONDIRENTRY structures
-     * @param Icon $icon
-     * @param string $data
+     * @param Icon    $icon
+     * @param string  $data
      * @param integer $count
      * @return string
      */
@@ -100,7 +100,7 @@ class IcoParser implements ParserInterface
     /**
      * Handle icon image which is PNG formatted
      * @param IconImage $entry
-     * @param string $data
+     * @param string    $data
      */
     private function parsePng(IconImage $entry, $data)
     {
@@ -112,7 +112,7 @@ class IcoParser implements ParserInterface
     /**
      * Handle icon image which is BMP formatted
      * @param IconImage $entry
-     * @param string $data
+     * @param string    $data
      */
     private function parseBmp(IconImage $entry, $data)
     {
@@ -140,7 +140,7 @@ class IcoParser implements ParserInterface
     /**
      * Parse an image which doesn't use a palette
      * @param IconImage $entry
-     * @param string $data
+     * @param string    $data
      */
     private function parseTrueColorImageData(IconImage $entry, $data)
     {
@@ -152,7 +152,7 @@ class IcoParser implements ParserInterface
     /**
      * Parse an image which uses a limited palette of colours
      * @param IconImage $entry
-     * @param string $data
+     * @param string    $data
      */
     private function parsePaletteImageData(IconImage $entry, $data)
     {
