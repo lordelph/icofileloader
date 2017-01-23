@@ -142,11 +142,11 @@ The MIT License (MIT). Please see [License File](https://github.com/lordelph/ico
 While these were originally provided on the PHPClasses site under a GPL license,
 Diogo kindly agreed to allow them to be licensed under an MIT license.*
 
-[class-icofileservice]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/IcoFileService.php
-[class-icon]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/Icon.php
-[class-image]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/IconImage.php
-[class-parser]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/IcoParser.php
-[class-renderer]: https://github.com/lordelph/icofileloader/blob/master/src/Elphin/IcoFileLoader/GdRenderer.php
+[class-icofileservice]: https://github.com/lordelph/icofileloader/blob/master/src/IcoFileService.php
+[class-icon]: https://github.com/lordelph/icofileloader/blob/master/src/Icon.php
+[class-image]: https://github.com/lordelph/icofileloader/blob/master/src/IconImage.php
+[class-parser]: https://github.com/lordelph/icofileloader/blob/master/src/IcoParser.php
+[class-renderer]: https://github.com/lordelph/icofileloader/blob/master/src/GdRenderer.php
 
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
 [ico-travis]: https://img.shields.io/travis/lordelph/icofileloader/master.svg?style=flat-square
