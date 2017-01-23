@@ -5,7 +5,9 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
-## 1.0.0 - tbc
+## 1.0.0 - 2017-01-23
+
+First stable release
 
 ### Added
 - iterator support to Icon class
