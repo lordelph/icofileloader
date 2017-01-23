@@ -5,6 +5,16 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
+## 1.0.0 - tbc
+
+### Added
+- iterator support to Icon class
+
+### Change
+- folder structure simplified to take advantage of PSR-4
+- documentation polished
+
+
 ## 1.0.0-alpha - 2017-01-22
 
 ### Added
