@@ -18,10 +18,8 @@ The package has unit tests which verify support for 1bit, 4bit, 8bit, 24bit and 
 IcoFileLoader is available via Composer:
 
 ```bash
-composer require lordelph/icofileloader:1.0.0-alpha
+composer require lordelph/icofileloader
 ```
-
-(Note - final stable 1.0.0 will be released before end of Jan)
 
 ## Usage
 The [IcoFileService][class-icofileservice] class provides a one-shot method 
