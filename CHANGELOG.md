@@ -5,6 +5,12 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
+## master
+
+### Fixed
+- issue #8 icons with zero bit depth in header failed to load
+
+
 ## 1.0.0 - 2017-01-23
 
 First stable release
