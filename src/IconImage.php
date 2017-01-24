@@ -111,7 +111,7 @@ class IconImage
     public function setBitmapInfoHeader($bmpInfo)
     {
         //bit depth can be zero in the ICONDIRENTRY, we trust the bitmap header more...
-        $this->bitCount=$bmpInfo['BitCount'];
+        $this->bitCount = $bmpInfo['BitCount'];
 
         //we need this to calculate offsets when rendering
         $this->bmpHeaderWidth = $bmpInfo['Width'];
