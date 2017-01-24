@@ -15,7 +15,9 @@ class IcoParser implements ParserInterface
      */
     public function isSupportedBinaryString($data)
     {
-        return !is_null($this->parseIconDir($data));
+        $supported = !is_null($this->parseIconDir($data));
+        $supported = $supported || $this->isPNG($data);
+        return $supported;
     }
 
     /**
@@ -33,9 +35,27 @@ class IcoParser implements ParserInterface
     }
 
     /**
+     * @param $data
+     * @return bool true if first four bytes look like a PNG
+     */
+    private function isPNG($data)
+    {
+        $signature = unpack('LFourCC', $data);
+        return ($signature['FourCC'] == 0x474e5089);
+    }
+
+    /**
      * @inheritdoc
      */
     public function parse($data)
+    {
+        if ($this->isPNG($data)) {
+            return $this->parsePNGAsIco($data);
+        }
+        return $this->parseICO($data);
+    }
+
+    private function parseICO($data)
     {
         $icondir = $this->parseIconDir($data);
         if (!$icondir) {
@@ -52,8 +72,7 @@ class IcoParser implements ParserInterface
         // Extract additional headers for each extracted ICONDIRENTRY
         $iconCount = count($icon);
         for ($i = 0; $i < $iconCount; ++$i) {
-            $signature = unpack('LFourCC', substr($data, $icon[$i]->fileOffset, 4));
-            if ($signature['FourCC'] == 0x474e5089) {
+            if ($this->isPNG(substr($data, $icon[$i]->fileOffset, 4))) {
                 $this->parsePng($icon[$i], $data);
             } else {
                 $this->parseBmp($icon[$i], $data);
@@ -63,10 +82,34 @@ class IcoParser implements ParserInterface
         return $icon;
     }
 
+    private function parsePNGAsIco($data)
+    {
+        $png = imagecreatefromstring($data);
+        $w = imagesx($png);
+        $h = imagesy($png);
+        $bits = imageistruecolor($png) ? 32 : 8;
+        imagedestroy($png);
+
+        //fake enough header data for IconImage to do its job
+        $icoDirEntry = [
+            'width' => $w,
+            'height' => $h,
+            'bitCount' => $bits
+        ];
+
+        //create the iconimage and give it the PNG data
+        $image = new IconImage($icoDirEntry);
+        $image->setPngFile($data);
+
+        $icon = new Icon();
+        $icon[] = $image;
+        return $icon;
+    }
+
     /**
      * Parse the sequence of ICONDIRENTRY structures
-     * @param Icon    $icon
-     * @param string  $data
+     * @param Icon $icon
+     * @param string $data
      * @param integer $count
      * @return string
      */
@@ -100,7 +143,7 @@ class IcoParser implements ParserInterface
     /**
      * Handle icon image which is PNG formatted
      * @param IconImage $entry
-     * @param string    $data
+     * @param string $data
      */
     private function parsePng(IconImage $entry, $data)
     {
@@ -112,7 +155,7 @@ class IcoParser implements ParserInterface
     /**
      * Handle icon image which is BMP formatted
      * @param IconImage $entry
-     * @param string    $data
+     * @param string $data
      */
     private function parseBmp(IconImage $entry, $data)
     {
@@ -140,7 +183,7 @@ class IcoParser implements ParserInterface
     /**
      * Parse an image which doesn't use a palette
      * @param IconImage $entry
-     * @param string    $data
+     * @param string $data
      */
     private function parseTrueColorImageData(IconImage $entry, $data)
     {
@@ -152,7 +195,7 @@ class IcoParser implements ParserInterface
     /**
      * Parse an image which uses a limited palette of colours
      * @param IconImage $entry
-     * @param string    $data
+     * @param string $data
      */
     private function parsePaletteImageData(IconImage $entry, $data)
     {
