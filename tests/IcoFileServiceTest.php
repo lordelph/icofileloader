@@ -7,7 +7,12 @@ class IcoFileServiceTest extends IcoTestCase
     {
         $service = new IcoFileService;
         $im = $service->extractIcon('./tests/assets/32bit-16px-32px-sample.ico', 64, 64);
-        $this->assertImageLooksLike('32bit-64px-resize-expected.png', $im);
+        // imagescale that is only supported in PHP ≥ 5.5 uses different interpolation
+        if (function_exists('imagescale')) {
+            $this->assertImageLooksLike('32bit-64px-resize-expected.png', $im);
+        } else {
+            $this->assertImageLooksLike('32bit-64px-resize-expected-legacy.png', $im);
+        }
     }
 
     public function testFromWithData()
