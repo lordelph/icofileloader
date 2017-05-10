@@ -53,6 +53,7 @@ class IcoFileService
      * @return mixed              The built in renderer will return a gd image resource, which you could save with
      *                            the gd function imagepng(), for example. If you swap in an alternative renderer,
      *                            the result is whatever that renderer returns.
+     * @throws \DomainException if icon does not contain any images.
      * @throws \InvalidArgumentException if file is not found or is invalid.
      */
     public function extractIcon($dataOrFile, $w, $h, array $opts = null)
@@ -62,6 +63,9 @@ class IcoFileService
         if (!$image) {
             //nothing at our required size, so we'll find the highest quality icon
             $image = $icon->findBest();
+        }
+        if (!$image) {
+            throw new \DomainException('Icon does not contain any images.');
         }
         return $this->renderImage($image, $w, $h, $opts);
     }
