@@ -81,4 +81,11 @@ class IcoParserTest extends IcoTestCase
         $this->assertEquals('48x48 pixel BMP @ 32 bits/pixel', $icon[10]->getDescription());
         $this->assertEquals('256x256 pixel PNG @ 32 bits/pixel', $icon[11]->getDescription());
     }
+
+    public function testEmptyIcon()
+    {
+        $parser = new IcoParser();
+        $icon = $parser->parse(file_get_contents('./tests/assets/empty.ico'));
+        $this->assertEquals(0, count($icon));
+    }
 }

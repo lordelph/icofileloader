@@ -10,6 +10,15 @@ class IcoFileServiceTest extends IcoTestCase
         $this->assertImageLooksLike('32bit-64px-resize-expected.png', $im);
     }
 
+    /**
+     * @expectedException \DomainException
+     */
+    public function testExtractEmpty()
+    {
+        $service = new IcoFileService;
+        $im = $service->extractIcon('./tests/assets/empty.ico', 64, 64);
+    }
+
     public function testFromWithData()
     {
         $service = new IcoFileService;
