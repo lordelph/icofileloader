@@ -5,8 +5,12 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
-## 1.0.1 - 2017-01-24
+## 1.0.2 - 2017-05-11
 
+### Fixed
+- PR #10 ensures exception thrown when empty .ico file is loaded
+
+## 1.0.1 - 2017-01-24
 
 ### Fixed
 - issue #8 icons with zero bit depth in header failed to load
