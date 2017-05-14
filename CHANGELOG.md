@@ -5,6 +5,12 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
+## 1.1.0 - 2017-05-14
+
+### Added
+- PR #11 adds backwards compatibility to php 5.4
+- As php5.4 is past its end-of-life, new developments will occur in v2.0.0 onwards
+
 ## 1.0.2 - 2017-05-11
 
 ### Fixed
