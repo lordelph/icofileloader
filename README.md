@@ -21,6 +21,13 @@ IcoFileLoader is available via Composer:
 composer require lordelph/icofileloader
 ```
 
+The latest version targets currently supported php versions (5.6, 7.0, 7.1). 
+If you need to use php5.4 or php5.5, you must install the v1.* branch
+
+```bash
+composer require lordelph/icofileloader:1.*
+```
+
 ## Usage
 The [IcoFileService][class-icofileservice] class provides a one-shot method 
 `extractIcon`. This should suit most use-cases where you simply want to get one 
