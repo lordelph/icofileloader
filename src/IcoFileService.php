@@ -120,11 +120,16 @@ class IcoFileService
      */
     public function fromFile($file)
     {
-        if (file_exists($file)) {
+        try {
             $data = file_get_contents($file);
-            return $this->parser->parse($data);
+            if ($data!==false) {
+                return $this->parser->parse($data);
+            }
+            throw new \InvalidArgumentException("file could not be loaded");
         }
-        throw new \InvalidArgumentException("file was not found");
+        catch (\Exception $e) {
+            throw new \InvalidArgumentException("file could not be loaded (".$e->getMessage().")");
+        }
     }
 
     /**
