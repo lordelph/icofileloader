@@ -5,6 +5,12 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
+## 2.0.1 - 2017-06-01
+
+### Fixed
+
+- PR #12 fixes issues with loading icons from URLs  
+
 ## 2.0.0 - 2017-05-14
 
 ### Change
