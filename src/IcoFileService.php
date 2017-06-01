@@ -25,7 +25,7 @@ class IcoFileService
      * typical uses, you can accept the defaults.
      *
      * @param RendererInterface|null $renderer
-     * @param ParserInterface|null   $parser
+     * @param ParserInterface|null $parser
      */
     public function __construct(RendererInterface $renderer = null, ParserInterface $parser = null)
     {
@@ -42,11 +42,11 @@ class IcoFileService
      * This will either return a valid image, or will throw an \InvalidArgumentException in the event of the file
      * being unreadable.
      *
-     * @param string  $dataOrFile Either a filename to a .ico file, or binary data from an .ico file in a string
-     * @param integer $w          Desired width. The class tries to locate the best quality image at this size, but
+     * @param string $dataOrFile Either a filename to a .ico file, or binary data from an .ico file in a string
+     * @param integer $w Desired width. The class tries to locate the best quality image at this size, but
      *                            if not found, the largest available icon will be used and resized to fit.
-     * @param integer $h          Desired height - as icons are usually square, this should be same as $w.
-     * @param array   $opts       Array of renderer options. The built in renderer supports an optional 'background'
+     * @param integer $h Desired height - as icons are usually square, this should be same as $w.
+     * @param array $opts Array of renderer options. The built in renderer supports an optional 'background'
      *                            elemen in this array. Normally, the result will use alpha transparency, but you can
      *                            pass a hex colour to choose the colour of the transparent area instead, e.g.
      *                            ['background=>'#ffffff'] for a white background.
@@ -73,10 +73,10 @@ class IcoFileService
     /**
      * Renders an IconImage at a desired width and height.
      *
-     * @param IconImage $image    Image obtained from an Icon object.
-     * @param integer   $w        Desired width - if null, width of IconImage is used.
-     * @param integer   $h        Desired height - if null, height of IconImage is used.
-     * @param array     $opts     Array of renderer options. The built in renderer supports an optional 'background'
+     * @param IconImage $image Image obtained from an Icon object.
+     * @param integer $w Desired width - if null, width of IconImage is used.
+     * @param integer $h Desired height - if null, height of IconImage is used.
+     * @param array $opts Array of renderer options. The built in renderer supports an optional 'background'
      *                            element in this array. Normally, the result will use alpha transparency, but you can
      *                            pass a hex colour to choose the colour of the transparent area instead, e.g.
      *                            ['background=>'#ffffff'] for a white background.
@@ -122,13 +122,12 @@ class IcoFileService
     {
         try {
             $data = file_get_contents($file);
-            if ($data!==false) {
+            if ($data !== false) {
                 return $this->parser->parse($data);
             }
             throw new \InvalidArgumentException("file could not be loaded");
-        }
-        catch (\Exception $e) {
-            throw new \InvalidArgumentException("file could not be loaded (".$e->getMessage().")");
+        } catch (\Exception $e) {
+            throw new \InvalidArgumentException("file could not be loaded (" . $e->getMessage() . ")");
         }
     }
 
