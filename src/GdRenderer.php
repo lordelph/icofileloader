@@ -37,8 +37,17 @@ class GdRenderer implements RendererInterface
 
     protected function resize($gd, $w, $h)
     {
-        //TODO - imagescale not available in hhvm it seems
-        $resized = imagescale($gd, $w, $h, IMG_BICUBIC_FIXED);
+        // imagescale is only supported in PHP ≥ 5.5
+        if (function_exists('imagescale')) {
+            $resized = imagescale($gd, $w, $h, IMG_BICUBIC_FIXED);
+        } else {
+            $resized = imagecreatetruecolor($w, $h);
+            $transparentColor = imagecolorallocatealpha($resized, 0, 0, 0, 127);
+            imagecolortransparent($resized, $transparentColor);
+            imagefilledrectangle($resized, 0, 0, $w, $h, $transparentColor);
+            imagecopyresampled($resized, $gd, 0, 0, 0, 0, $w, $h, imagesx($gd), imagesy($gd));
+        }
+
         imagedestroy($gd);
         return $resized;
     }
