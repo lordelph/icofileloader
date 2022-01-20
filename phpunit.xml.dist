@@ -5,6 +5,9 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+    <php>
+        <ini name="error_reporting" value="E_ALL" />
+    </php>
     <filter>
         <whitelist>
             <directory suffix=".php">src/Elphin/IcoFileLoader</directory>
