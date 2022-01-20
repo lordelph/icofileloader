@@ -261,11 +261,11 @@ class GdRenderer implements RendererInterface
                 $lowNibble = $colorByte & 0x0f;
                 $highNibble = ($colorByte & 0xf0) >> 4;
 
-                if ($maskBits[$maskoffset++] == 0) {
+                if ($maskBits[$maskoffset++] == 0 && isset($palette[$highNibble])) {
                     imagesetpixel($gd, $j, $i, $palette[$highNibble]);
                 }
 
-                if ($maskBits[$maskoffset++] == 0) {
+                if ($maskBits[$maskoffset++] == 0 && isset($palette[$lowNibble])) {
                     imagesetpixel($gd, $j + 1, $i, $palette[$lowNibble]);
                 }
                 $offset++;

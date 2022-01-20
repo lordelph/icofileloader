@@ -46,6 +46,14 @@ class GdRendererTest extends IcoTestCase
         $this->assertImageLooksLike('32bit-png-green-expected.png', $im);
     }
 
+    public function testInvalidOffsetNoticeIsNotTriggered()
+    {
+        $renderer=new GdRenderer;
+        $icon=$this->parseIcon('bad-nibble.ico');
+        $renderer->render($icon->findBest());
+        $this->assertTrue(true);
+    }
+
     /**
      * @expectedException \InvalidArgumentException
      */
