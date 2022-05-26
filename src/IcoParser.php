@@ -16,7 +16,7 @@ class IcoParser implements ParserInterface
     public function isSupportedBinaryString($data)
     {
         $supported = !is_null($this->parseIconDir($data));
-        $supported = $supported || $this->isPNG($data);
+        $supported = $supported || $this->isPNG($data) || $this->isBMP($data);
         return $supported;
     }
 
@@ -45,12 +45,22 @@ class IcoParser implements ParserInterface
     }
 
     /**
+     * @param $data
+     * @return bool true if mime type matches a BMP
+     */
+    private function isBMP($data)
+    {
+        $signature = getimagesizefromstring($data);
+        return ($signature['mime'] == 'image/bmp');
+    }
+
+    /**
      * @inheritdoc
      */
     public function parse($data)
     {
-        if ($this->isPNG($data)) {
-            return $this->parsePNGAsIco($data);
+        if ($this->isPNG($data) || $this->isBMP($data)) {
+            return $this->parseImgAsIco($data);
         }
         return $this->parseICO($data);
     }
@@ -82,13 +92,13 @@ class IcoParser implements ParserInterface
         return $icon;
     }
 
-    private function parsePNGAsIco($data)
+    private function parseImgAsIco($data)
     {
-        $png = imagecreatefromstring($data);
-        $w = imagesx($png);
-        $h = imagesy($png);
-        $bits = imageistruecolor($png) ? 32 : 8;
-        imagedestroy($png);
+        $img = imagecreatefromstring($data);
+        $w = imagesx($img);
+        $h = imagesy($img);
+        $bits = imageistruecolor($img) ? 32 : 8;
+        imagedestroy($img);
 
         //fake enough header data for IconImage to do its job
         $icoDirEntry = [
