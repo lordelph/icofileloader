@@ -62,6 +62,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
      * As this class implements Countable you can simply use count($icon) if you desire
      * @return int
      */
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return count($this->images);
@@ -73,6 +74,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
      * @param integer   $offset
      * @param IconImage $value
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         if (!$value instanceof IconImage) {
@@ -91,6 +93,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
      * @param integer $offset
      * @return boolean
      */
+    #[\ReturnTypeWillChange]
     public function offsetExists($offset)
     {
         return isset($this->images[$offset]);
@@ -102,6 +105,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
      * @param integer $offset
      * @return boolean
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->images[$offset]);
@@ -113,6 +117,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
      * @param integer $offset
      * @return IconImage
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return isset($this->images[$offset]) ? $this->images[$offset] : null;
@@ -121,6 +126,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
     /**
      * Implements \Iterator allowing foreach($icon as $image){}
      */
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         $this->position = 0;
@@ -129,6 +135,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
     /**
      * Implements \Iterator allowing foreach($icon as $image){}
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         return $this->images[$this->position];
@@ -137,6 +144,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
     /**
      * Implements \Iterator allowing foreach($icon as $image){}
      */
+    #[\ReturnTypeWillChange]
     public function key()
     {
         return $this->position;
@@ -145,6 +153,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
     /**
      * Implements \Iterator allowing foreach($icon as $image){}
      */
+    #[\ReturnTypeWillChange]
     public function next()
     {
         ++$this->position;
@@ -153,6 +162,7 @@ class Icon implements \ArrayAccess, \Countable, \Iterator
     /**
      * Implements \Iterator allowing foreach($icon as $image){}
      */
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         return isset($this->images[$this->position]);
