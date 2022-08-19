@@ -46,11 +46,10 @@ class GdRendererTest extends IcoTestCase
         $this->assertImageLooksLike('32bit-png-green-expected.png', $im);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testInvalidBackground()
     {
+        $this->expectException(\InvalidArgumentException::class);
+
         $renderer=new GdRenderer;
         $icon=$this->parseIcon('32bit-png-sample.ico');
         $renderer->render($icon[11], ['background'=>'this is garbage']);

@@ -1,7 +1,9 @@
 <?php
 namespace Elphin\IcoFileLoader;
 
-abstract class IcoTestCase extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+abstract class IcoTestCase extends TestCase
 {
     /**
      * @param string $expected leafname of asset file we expect image to look like
@@ -9,7 +11,7 @@ abstract class IcoTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function assertImageLooksLike($expected, $im)
     {
-        $this->assertInternalType('resource', $im);
+        $this->assertIsObject($im);
 
         $expectedFile = './tests/assets/' . $expected;
         //can regenerate expected results by deleting and re-running test

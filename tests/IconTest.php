@@ -19,11 +19,9 @@ class IconTest extends IcoTestCase
         $this->assertEquals(1, count($icon));
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testInvalidAdd()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $icon = new Icon;
         $icon[] = "foo";
     }

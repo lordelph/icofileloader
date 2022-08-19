@@ -10,11 +10,10 @@ class IcoFileServiceTest extends IcoTestCase
         $this->assertImageLooksLike('32bit-64px-resize-expected.png', $im);
     }
 
-    /**
-     * @expectedException \DomainException
-     */
     public function testExtractEmpty()
     {
+        $this->expectException(\DomainException::class);
+
         $service = new IcoFileService;
         $im = $service->extractIcon('./tests/assets/empty.ico', 64, 64);
     }
@@ -37,29 +36,23 @@ class IcoFileServiceTest extends IcoTestCase
         $this->assertNotNull($icon);
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testInvalidFrom()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $service = new IcoFileService;
         $service->from("not an icon");
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testInvalidFromString()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $service = new IcoFileService;
         $service->fromString("not an icon");
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testInvalidFromFile()
     {
+        $this->expectException(\InvalidArgumentException::class);
         $service = new IcoFileService;
         $service->fromFile("not a file");
     }
@@ -72,7 +65,7 @@ class IcoFileServiceTest extends IcoTestCase
         $count=0;
         foreach ($icon as $image) {
             $im=$service->renderImage($image);
-            $this->assertInternalType('resource', $im);
+            $this->assertIsObject($im);
             $count++;
         }
         $this->assertEquals(count($icon), $count);
