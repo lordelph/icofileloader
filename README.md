@@ -15,13 +15,22 @@ The package has unit tests which verify support for 1bit, 4bit, 8bit, 24bit and 
 
 ## Installation
 
-IcoFileLoader is available via Composer:
+For recent php versions (8.*) IcoFileLoader is available via Composer:
 
 ```bash
 composer require lordelph/icofileloader
 ```
 
-The latest version targets currently supported php versions (5.6, 7.0, 7.1). 
+# PHP 5.6 - 7.x
+
+Earlier versions of php from 5.6 onwards can use version 2 of IcoFileLoader
+
+```bash
+composer require lordelph/icofileloader:2.*
+```
+
+# PHP 5.4 - 5.5
+
 If you need to use php5.4 or php5.5, you must install the v1.* branch
 
 ```bash
