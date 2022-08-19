@@ -5,6 +5,10 @@ Releases follow [Semantic Versioning](http://semver.org/) princples,
 and this changelog follows [Keep a CHANGELOG](http://keepachangelog.com/) 
 principles.
 
+## 3.0.0 - 2022-08-19
+
+- Upgraded to be compatible with php 8.x. For earlier versions of php, use the 2.x.x release
+
 ## 2.0.1 - 2017-06-01
 
 ### Fixed
